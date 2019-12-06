@@ -1,0 +1,53 @@
+#pragma once
+
+#include <memory>
+#include <future>
+#include "RobotCommunicationMRDS.h"
+#include "Cartographer.h"
+#include "Perception.h"
+
+class Robot {
+public:
+
+    explicit Robot(const std::shared_ptr<RobotCommunicationMRDS> &RobotCommunicator);
+
+    void SetCommunicator(const std::shared_ptr<RobotCommunicationMRDS> &NewRobotCommunicator);
+
+    /** Read properties for the robot through RobotCommunicator */
+    void ReadProperties();
+
+
+
+
+    double QuatToHeadingAngle(const glm::quat &Orientation) const;
+
+    glm::dvec3 GetPosition() const;
+
+
+    void Update() {
+        perception.ReadSensors();
+        UpdateMap();
+    }
+
+
+
+
+    const Cartographer &GetCartographer() const;
+
+private:
+    //Laser properties
+    double EndAngle;
+    double StartAngle;
+    double AngleIncrement;
+
+    std::shared_ptr<RobotCommunicationMRDS> RobotCommunicator;
+    Cartographer cartoGrapher;
+    Perception perception;
+
+
+
+    void UpdateMap();
+
+};
+
+

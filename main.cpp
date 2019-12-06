@@ -4,7 +4,14 @@
 
 #include <curl/curl.h>
 #include <QApplication>
+#include <Qlabel>
+#include <QtWidgets/QGridLayout>
+#include <glm/gtx/string_cast.hpp>
+#include <include/Robot.h>
+#include <include/MapVisualizer.h>
+#include <QTimer>
 
+#define GLM_ENABLE_EXPERIMENTAL // enable glm::to_string
 
 #define WIDTH 600
 #define HEIGHT 600
@@ -14,30 +21,48 @@ unsigned char image[STRIDE*HEIGHT];
 
 int main(int argc, char** argv) {
     auto curl = curl_easy_init();
-    std::cout << "Hello, World!" << std::endl;
-//    cairo_surface_t *surface;
-//    cairo_t* cr;
+    std::string host = "http://localhost";
+    int port = 50002;
+
     QApplication app (argc, argv);
-    MainWindow mw;
-    mw.show();
-
-//    surface = cairo_image_surface_create_for_data (image, CAIRO_FORMAT_ARGB32,
-//                                                   WIDTH, HEIGHT, STRIDE);
-//
-//    cr = cairo_create (surface);
-//
-//    cairo_rectangle (cr, 0, 0, WIDTH, HEIGHT);
-//
-//
-//    cairo_surface_write_to_png (surface, "spiral.png");
-//
-//    cairo_destroy (cr);
-//
-//    cairo_surface_destroy (surface);
 
 
-    //RobotCommunicationMRDS rc;
+    auto RobotCommunicator = std::make_shared<RobotCommunicationMRDS>(host, port);
+    auto robot = std::make_shared<Robot>(RobotCommunicator);
 
-   // rc.GetRequest();
+
+    MapVisualizer mapVisualizer;
+    mapVisualizer.SetRobot(robot);
+
+   // a = a.scaled(QSize(500, 500));
+    //a.QPixmap::sca
+//    MainWindow mw;
+//    auto gridLayout = new QGridLayout();
+//    auto label = new QLabel();
+//    label->setScaledContents(true);
+//    mw.setLayout(gridLayout);
+//    label->setPixmap(QPixmap::fromImage(a));
+//    gridLayout->addWidget(label);
+//    mw.show();
+
+    mapVisualizer.Show();
+
+
+     auto timer = new QTimer(&app);
+    QTimer::connect(timer, &QTimer::timeout, [&]{
+        robot->Update();
+        mapVisualizer.Show();
+    });
+    timer->start();
+
     return QApplication::exec();
+
+    while(1) {
+        std::cout << "Update" << std::endl;
+       ;
+    }
+    return QApplication::exec();
+}
+void RobotLoop() {
+
 }
