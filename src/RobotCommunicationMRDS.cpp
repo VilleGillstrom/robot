@@ -29,7 +29,7 @@ RobotCommunicationMRDS::laser_echos RobotCommunicationMRDS::FechEchoes()  const 
 
 }
 
-RobotCommunicationMRDS::robot_properties RobotCommunicationMRDS::FetchProperties()  const {
+RobotCommunicationMRDS::laser_properties RobotCommunicationMRDS::FetchProperties()  const {
     cpr::Response r = cpr::Get(cpr::Url{GetPropertiesUrl()});
     if (r.status_code != cpr::status::HTTP_OK) {
         std::stringstream ss;
@@ -39,14 +39,20 @@ RobotCommunicationMRDS::robot_properties RobotCommunicationMRDS::FetchProperties
     }
 
     json j = json::parse(r.text);
+
+    double x = j["Pose"]["Position"]["X"].get<double>();
+    double y = j["Pose"]["Position"]["Y"].get<double>();
+    double z = j["Pose"]["Position"]["Z"].get<double>();
     return {
             j["AngleIncrement"].get<double>(),
             j["EndAngle"].get<double>(),
-            j["StartAngle"].get<double>()
+            j["StartAngle"].get<double>(),
+            {x,y,z}
+
     };
 }
 
-RobotCommunicationMRDS::laser_localization RobotCommunicationMRDS::FetchLocalization() const{
+RobotCommunicationMRDS::robot_localization RobotCommunicationMRDS::FetchLocalization() const{
     cpr::Response r = cpr::Get(cpr::Url{GetLocalizationUrl()});
     if (r.status_code != cpr::status::HTTP_OK) {
         std::stringstream ss;
@@ -56,7 +62,7 @@ RobotCommunicationMRDS::laser_localization RobotCommunicationMRDS::FetchLocaliza
 
     json j = json::parse(r.text);
     glm::quat orientation;
-    glm::vec3 position;
+    glm::dvec3 position;
 
     orientation.x = j["Pose"]["Orientation"]["X"].get<double>();
     orientation.y = j["Pose"]["Orientation"]["Y"].get<double>();

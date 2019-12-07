@@ -3,6 +3,7 @@
 #include <QApplication>
 #include <Qlabel>
 #include <QtWidgets/QGridLayout>
+#include <QtGui/QPainter>
 #include "MainWindow.h"
 #include "Robot.h"
 
@@ -11,11 +12,12 @@ class MapVisualizer {
 
 public:
     MapVisualizer() {
-        gridLayout = new QGridLayout();
+        boxLayout = new QVBoxLayout();
         label = new QLabel();
         label->setScaledContents(true);
-        mw.setLayout(gridLayout);
-        gridLayout->addWidget(label);
+        mw.setLayout(boxLayout);
+        boxLayout->addWidget(label);
+        mw.setMinimumSize(500,500);
         mw.show();
     }
 
@@ -25,7 +27,7 @@ public:
 
     }
 
-    void Show() {
+    void Update() {
         if(!Robot) {
             return;
         }
@@ -38,13 +40,30 @@ public:
 
         QVector<QRgb> colormap(width * height);
         FillOccupancyGrid(grid, width, height, colormap);
-        DrawRobot(colormap);
 
 
-        auto image = QImage((uchar *) colormap.data(), width, height, QImage::Format_ARGB32);
+
+        QImage image = QImage((uchar *) colormap.data(), width, height, QImage::Format_ARGB32);
         QPixmap pixmap = QPixmap::fromImage(image);
+
+        PaintLaserView(pixmap);
+        DrawRobot(pixmap);
+
         pixmap = pixmap.transformed(QTransform().scale(1, -1));
+
+
         label->setPixmap(pixmap);
+    }
+
+    void PaintLaserView(QPixmap &pixmap) const {
+        QPainter painter(&pixmap);
+
+        glm::ivec2 rp = GetRobotPositionInMap();
+        glm::ivec2 ll = Robot->GetPerception()->GetLaserLeftEnd();
+        glm::ivec2 lr = Robot->GetPerception()->GetLaserLeftEnd();
+
+       // painter.drawLine(rp.x, rp.y, 200, 100);
+        painter.end();
     }
 
     void DrawRobot(QVector<QRgb> &colormap) const {
@@ -60,16 +79,23 @@ public:
                 double p = (1 -grid[r][c]) * 255;
                 int index = RowColTo1D(r, c, width);
                 colormap[index] = (qRgba(p, p, p, 255));
+                //int red = ((double)c /(double) width) * 255;
+                //int green = ((double)r / (double)height) * 255;
+                //colormap[index] = (qRgba(red, green, 0, 255));
+
             }
         }
     }
 
     glm::ivec2 GetRobotPositionInMap() const {
-        glm::dvec3 v = Robot->GetPosition();
+        return WorldLocationToMapLocation(Robot->GetPosition());
+    }
+
+    glm::ivec2 WorldLocationToMapLocation(const glm::dvec3 &v) const {
         auto& cg = Robot->GetCartographer();
-        long row = std::lround(v.x) - cg.GetXMin();
-        long col = std::lround(v.y) - cg.GetYMin();
-        return glm::ivec2(row, col);
+        int row= std::lround(v.x) - cg.GetXMin();
+        int col= std::lround(v.y) - cg.GetYMin();
+        return {row, col};
     }
 
     int RowColTo1D(int r, int c, int width) const {
@@ -79,7 +105,7 @@ public:
 private:
     std::shared_ptr<Robot> Robot;
     MainWindow mw;
-    QGridLayout *gridLayout;
+    QVBoxLayout* boxLayout;
     QLabel *label;
 
 

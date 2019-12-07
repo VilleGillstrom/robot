@@ -5,20 +5,13 @@
 #include "include/Robot.h"
 #include <glm/gtx/string_cast.hpp>
 
-Robot::Robot(const std::shared_ptr<RobotCommunicationMRDS> &RobotCommunicator)  : perception(RobotCommunicator), cartoGrapher(-100, -100, 100, 100) {
+Robot::Robot(const std::shared_ptr<RobotCommunicationMRDS> &RobotCommunicator)  :  cartoGrapher(-100, -100, 100, 100) {
     this->RobotCommunicator = RobotCommunicator;
-    ReadProperties();
+    perception = std::make_shared<Perception>(RobotCommunicator);
+    cartoGrapher.SetPreception(perception);
 }
 
-void Robot::ReadProperties() {
-    if (RobotCommunicator) {
-        RobotCommunicator->ReadProperties();
-        auto robotProperties = RobotCommunicator->GetProperties();
-        EndAngle = robotProperties.EndAngle;
-        StartAngle = robotProperties.StartAngle;
-        AngleIncrement = robotProperties.AngleIncrement;
-    }
-}
+
 
 void Robot::SetCommunicator(const std::shared_ptr<RobotCommunicationMRDS> &NewRobotCommunicator) {
     this->RobotCommunicator = NewRobotCommunicator;
@@ -30,26 +23,13 @@ double Robot::QuatToHeadingAngle(const glm::quat &Orientation) const {
 }
 
 glm::dvec3 Robot::GetPosition() const {
-    return perception.GetPosition();
+    return perception->GetLaserPosition();
 }
 
 const Cartographer &Robot::GetCartographer() const {
     return cartoGrapher;
 }
 
-void Robot::UpdateMap() {
-
-
-    const glm::quat &orientation = perception.GetOrientation();
-    const std::vector<double>& Distances = perception.GetEchoDistances();
-    const glm::dvec3 &position = perception.GetPosition();
-
-    double Heading = QuatToHeadingAngle(orientation);
-    for(int i = 0; i < Distances.size(); ++i) { //echoes.values.size()
-        auto distance = Distances[i];
-        double LocalLaserHeading = StartAngle + AngleIncrement * i;
-        double GlobalLaserHeading =  Heading + LocalLaserHeading;
-        cartoGrapher.HandleEcho(distance, position, GlobalLaserHeading);
-    }
+std::shared_ptr<Perception> Robot::GetPerception() const {
+    return perception;
 }
-

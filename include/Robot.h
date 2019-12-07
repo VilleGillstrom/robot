@@ -25,28 +25,20 @@ public:
 
 
     void Update() {
-        perception.ReadSensors();
-        UpdateMap();
+        perception->ReadSensors();
+        cartoGrapher.Update();
     }
 
 
-
-
     const Cartographer &GetCartographer() const;
+    std::shared_ptr<Perception> GetPerception() const;
 
 private:
-    //Laser properties
-    double EndAngle;
-    double StartAngle;
-    double AngleIncrement;
 
     std::shared_ptr<RobotCommunicationMRDS> RobotCommunicator;
+    std::shared_ptr<Perception> perception;
     Cartographer cartoGrapher;
-    Perception perception;
 
-
-
-    void UpdateMap();
 
 };
 
