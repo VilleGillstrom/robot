@@ -3,11 +3,19 @@
 #include "include/OccupancyGrid.h"
 
 OccupancyGrid::OccupancyGrid(int xmin, int ymin, int xmax, int ymax)
-        : Xmin(xmin), Xmax(xmax), Ymin(ymin), Ymax(ymax) {
+        :     OccupancyGrid(1, xmin, ymin, xmax,ymax)
+{
+}
+
+OccupancyGrid::OccupancyGrid(int cellsize, int xmin, int ymin, int xmax, int ymax)
+        :Xmin(xmin), Xmax(xmax), Ymin(ymin), Ymax(ymax)  {
     int width = xmax - xmin;
     int height = ymax - ymin;
+
+
     Grid = std::vector<std::vector<double>>(width, std::vector<double>(height, 0.5));
 }
+
 
 int OccupancyGrid::Columns() const {
     return Grid.size();

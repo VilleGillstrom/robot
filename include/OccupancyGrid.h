@@ -7,6 +7,8 @@
 class OccupancyGrid {
 private:
 
+    OccupancyGrid(int resolution, int xmin, int ymin, int xmax, int ymax);
+
     std::vector<std::vector<double>> Grid;
 public:
 

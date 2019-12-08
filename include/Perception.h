@@ -19,7 +19,6 @@ public:
         communicator->ReadSensors();
         echoes = communicator->GetEchoes();
         localization = communicator->GetLocalization();
-        //std::cout << "echoes stamp: " << echoes.timestamp  << ", loc stamp: " << localization.timestamp << std::endl;
     }
 
     glm::dvec3 GetLaserPosition() const {
@@ -87,11 +86,12 @@ public:
     int GetEndLaserIndex() const {
         return EndLaserIndex;
     }
+
+    int LastEchoTimestamp() const {
+        return echoes.timestamp;
+    }
 private:
     int StartLaserIndex = 135-35;
-
-
-private:
     int EndLaserIndex = 135+35;
 
     std::shared_ptr<RobotCommunicationMRDS> communicator;
@@ -101,4 +101,5 @@ private:
     RobotCommunicationMRDS::robot_localization localization;
     /* laser properties */
     RobotCommunicationMRDS::laser_properties laserProperties;
+
 };
