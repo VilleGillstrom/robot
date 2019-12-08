@@ -33,28 +33,16 @@ int main(int argc, char** argv) {
 
     MapVisualizer mapVisualizer;
     mapVisualizer.SetRobot(robot);
-
-
     mapVisualizer.Update();
-    usleep(100);
 
      auto timer = new QTimer(&app);
     QTimer::connect(timer, &QTimer::timeout, [&]{
         std::cout << "Loop" << std::endl;
         robot->Update();
         mapVisualizer.Update();
-        usleep(100);
+       // usleep(100);
     });
     timer->start();
 
     return QApplication::exec();
-
-    while(1) {
-        std::cout << "Update" << std::endl;
-       ;
-    }
-    return QApplication::exec();
-}
-void RobotLoop() {
-
 }

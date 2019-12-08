@@ -21,7 +21,7 @@ public:
         localization = communicator->GetLocalization();
     }
 
-    glm::dvec3 GetLaserPosition() const {
+    glm::dvec3 GetLaserLocation() const {
         return GetPosition() + glm::rotateZ(laserProperties.LaserOffset, GetHeading());
 
     }
@@ -53,7 +53,7 @@ public:
     }
 
     static glm::dvec3 AngleToVector(double heading) {
-        return glm::rotateZ(glm::dvec3(1.0, 0.0, 0.0), heading);
+        return glm::normalize(glm::rotateZ(glm::dvec3(1.0, 0.0, 0.0), heading));
     }
 
     glm::dvec3 GetLaserWorldVector(int LaserIndex) const {
@@ -70,12 +70,12 @@ public:
 
     glm::dvec3 GetLaserLeftEnd() const {
         const glm::dvec3 &LaserHeading = glm::rotateZ(GetRobotForwardVector(), GetStartAngle() );
-        return  GetLaserPosition() +  (LaserHeading* 40.0) ;
+        return GetLaserLocation() + (LaserHeading * 40.0) ;
     }
 
     glm::dvec3 GetLaserRightEnd() const {
         const glm::dvec3 LaserHeading = glm::rotateZ(GetRobotForwardVector(), GetStartAngle() );
-        return  GetLaserPosition()+ (LaserHeading * 40.0) ;
+        return GetLaserLocation() + (LaserHeading * 40.0) ;
 
     }
 

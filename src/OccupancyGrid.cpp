@@ -9,8 +9,8 @@ OccupancyGrid::OccupancyGrid(int xmin, int ymin, int xmax, int ymax)
 
 OccupancyGrid::OccupancyGrid(int cellsize, int xmin, int ymin, int xmax, int ymax)
         :Xmin(xmin), Xmax(xmax), Ymin(ymin), Ymax(ymax)  {
-    int width = xmax - xmin;
-    int height = ymax - ymin;
+    int width = ceil(((xmax - xmin) / (double) cellsize));
+    int height = ceil(((ymax - ymin) / (double) cellsize));
 
 
     Grid = std::vector<std::vector<double>>(width, std::vector<double>(height, 0.5));
@@ -52,3 +52,7 @@ void OccupancyGrid::UpdateCell(int row, int column, double value) {
 bool OccupancyGrid::ValidRow(int row) const { return row >= 0 && row < Rows(); }
 
 bool OccupancyGrid::ValidColumn(int column) const { return column >= 0 && column < Columns(); }
+
+double OccupancyGrid::GetCellValue(const glm::ivec2 &cell) {
+    return  Grid[cell.x][cell.y];
+}

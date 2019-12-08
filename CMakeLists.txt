@@ -10,6 +10,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -lcurl")
 set(CMAKE_EXE_LINKER_FLAGS "-static -static-libgcc -static-libstdc++")
 
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}") ##Disaple optimozation for profiling
 
 
 ### Qt  ###

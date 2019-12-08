@@ -3,19 +3,20 @@
 #include <vector>
 #include <iostream>
 #include <cmath>
+#include <glm/glm.hpp>
 
 class OccupancyGrid {
-private:
 
-    OccupancyGrid(int resolution, int xmin, int ymin, int xmax, int ymax);
-
-    std::vector<std::vector<double>> Grid;
 public:
-
     OccupancyGrid(int xmin, int ymin, int xmax, int ymax);
+    OccupancyGrid(int cellsize, int xmin, int ymin, int xmax, int ymax);
+
 
     void UpdateCell(int row, int column, double value);
+    double GetCellValue(const glm::ivec2 & cell);
+
     void UpdateLocation(double x, double y, double value);
+
 
 
     int Xmin;
@@ -28,6 +29,9 @@ public:
     int Rows() const;
     bool ValidRow(int row) const;
     bool ValidColumn(int column) const;
+
+private:
+    std::vector<std::vector<double>> Grid;
 };
 
 

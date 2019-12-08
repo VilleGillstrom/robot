@@ -5,7 +5,7 @@
 #include "include/Robot.h"
 #include <glm/gtx/string_cast.hpp>
 
-Robot::Robot(const std::shared_ptr<RobotCommunicationMRDS> &RobotCommunicator)  :  cartoGrapher(-100, -100, 100, 100) {
+Robot::Robot(const std::shared_ptr<RobotCommunicationMRDS> &RobotCommunicator)  :  cartoGrapher(1, -100, -100, 100, 100) {
     this->RobotCommunicator = RobotCommunicator;
     perception = std::make_shared<Perception>(RobotCommunicator);
     cartoGrapher.SetPreception(perception);
@@ -23,7 +23,7 @@ double Robot::QuatToHeadingAngle(const glm::quat &Orientation) const {
 }
 
 glm::dvec3 Robot::GetPosition() const {
-    return perception->GetLaserPosition();
+    return perception->GetLaserLocation();
 }
 
 const Cartographer &Robot::GetCartographer() const {

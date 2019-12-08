@@ -127,7 +127,10 @@ private:
     QLabel *label;
 
 
+    /** Get the map width, will be equal to columns in the occupancyGrid */
     unsigned int GetHeight() const;
+
+    /** Get the map width, will be equal to columns in the occupancyGrid */
     unsigned int GetWidth() const;
 
 };

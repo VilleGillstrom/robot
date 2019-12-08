@@ -1,6 +1,13 @@
 
 #include "include/Cartographer.h"
 
+
+Cartographer::Cartographer(int cellsize, int xmin, int ymin, int xmax, int ymax) :
+    occupancyGrid(cellsize, xmin, ymin, xmax, ymax) {
+    this->cellSize = cellsize;
+}
+
+
 int Cartographer::GetXMin() const {
     return occupancyGrid.Xmin;
 }
@@ -31,7 +38,7 @@ glm::ivec2 Cartographer::WorldLocationToCell(double x, double y) const {
     return {row, column};
 }
 
-glm::dvec3 Cartographer::CellToWorldLocation(glm::ivec2 cell) const {
+glm::dvec3 Cartographer::CellToWorldLocation(const glm::ivec2& cell) const {
     return CellToWorldLocation(cell.x, cell.y);
 }
 
@@ -113,10 +120,10 @@ bool Cartographer::IsOutside(glm::dvec3 Point, glm::dvec3 Normal) const {
     return glm::dot(Normal, Point) > 0;
 }
 
-bool Cartographer::IsCellWithinBoundry(glm::ivec2 cell, glm::dvec3 LaserVector, double Beta) const {
+bool Cartographer::IsCellWithinBoundry(glm::ivec2 cell, glm::dvec3 LaserVector) const {
     std::vector<glm::dvec3> corners;
     glm::dvec3 cwl = CellToWorldLocation(cell);
-    glm::dvec3 cll = cwl - perception->GetLaserPosition();
+    glm::dvec3 cll = cwl - perception->GetLaserLocation();
 
     glm::dvec3 robotForward = perception->GetRobotForwardVector();
 
@@ -126,4 +133,40 @@ bool Cartographer::IsCellWithinBoundry(glm::ivec2 cell, glm::dvec3 LaserVector, 
     return IsBoxInside(robotForward, AA, BB, cll);
 
 }
+
+glm::dvec3 Cartographer::WorldLaserDirection(double GlobalLaserHeading) const {
+    glm::dvec3 xvec(1, 0, 0.0);
+    glm::dvec3 HeadingVector = glm::rotateZ(xvec, GlobalLaserHeading);
+    return HeadingVector;
+}
+
+glm::dvec3 Cartographer::ComputeLocalHitLocation(double Distance, double GlobalLaserHeading) const {
+    glm::dvec3 HeadingVector = WorldLaserDirection(GlobalLaserHeading);
+    glm::dvec3 LocalHitPosition = HeadingVector * Distance;
+    return LocalHitPosition;
+}
+
+glm::dvec3
+Cartographer::ComputeWorldHitLocation(double Distance, const glm::dvec3 &LaserPosition, double GlobalLaserHeading) const {
+    glm::dvec3 LocalHitLocation = ComputeLocalHitLocation(Distance, GlobalLaserHeading);
+    glm::dvec3 GlobalHitLocation = LaserPosition + LocalHitLocation;
+    return GlobalHitLocation;
+}
+
+double Cartographer::DistanceToCell(glm::ivec2 cell, glm::dvec3 position) const {
+    return glm::length(CellToWorldLocation(cell) - position);
+}
+
+void Cartographer::GetCellsInRange(double range, std::vector<glm::ivec2> &outCells) {
+    outCells.clear();
+    for (int c = 0; c < occupancyGrid.Columns(); ++c) {
+        for (int r = 0; r < occupancyGrid.Rows(); ++r) {
+            double distance = glm::length(CellToWorldLocation({r, c}) - perception->GetLaserLocation());
+            if (distance < range) {
+                outCells.emplace_back(r, c);
+            }
+        }
+    }
+}
+
 
