@@ -21,11 +21,11 @@ const std::vector<std::vector<double>> &Cartographer::GetProbablityGrid() const 
 }
 
 double Cartographer::GetCellHeight() const {
-    return 1;
+    return cellSize;
 }
 
 double Cartographer::GetCellWidth() const {
-    return 1;
+    return cellSize;
 }
 
 void Cartographer::SetPreception(const std::shared_ptr<Perception> &perception) {
@@ -42,12 +42,6 @@ glm::dvec3 Cartographer::CellToWorldLocation(const glm::ivec2& cell) const {
     return CellToWorldLocation(cell.x, cell.y);
 }
 
-//glm::dvec3 Cartographer::CellToLocalLocation(glm::ivec2 cell) const {
-//    if(!perception.get())
-//        return glm::dvec3();
-//    glm::dvec3 pos = perception->GetPosition();
-//    return CellToWorldLocation(cell) - pos;
-//}
 
 glm::ivec2 Cartographer::WorldLocationToCell(const glm::dvec3 &WorldLocation) const {
     return WorldLocationToCell(WorldLocation.x, WorldLocation.y);
@@ -109,9 +103,9 @@ bool Cartographer::IsBoxInside(glm::dvec3 RobotForward, glm::dvec3 LineA, glm::d
         return false;
     }
 
-    if(IsOutside(CellLocalLocation, -RobotForward)) {
-        return false;
-    }
+//    if(IsOutside(CellLocalLocation, -RobotForward)) {
+//        return false;
+//    }
     return true;
 
 }

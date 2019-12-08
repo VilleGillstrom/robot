@@ -13,6 +13,10 @@ public:
 
 
     void UpdateCell(int row, int column, double value);
+    void UpdateCell(const glm::ivec2& cell, double value) {
+        UpdateCell(cell.x, cell.y, value);
+    }
+
     double GetCellValue(const glm::ivec2 & cell);
 
     void UpdateLocation(double x, double y, double value);

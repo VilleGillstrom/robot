@@ -26,7 +26,7 @@ public:
     }
 
 
-    const Cartographer &GetCartographer() const;
+    Cartographer &GetCartographer();
     std::shared_ptr<Perception> GetPerception() const;
 
 private:

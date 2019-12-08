@@ -91,8 +91,8 @@ public:
         return echoes.timestamp;
     }
 private:
-    int StartLaserIndex = 135-35;
-    int EndLaserIndex = 135+35;
+    int StartLaserIndex = 135-135;
+    int EndLaserIndex = 135+135;
 
     std::shared_ptr<RobotCommunicationMRDS> communicator;
     /* Last Echoes*/

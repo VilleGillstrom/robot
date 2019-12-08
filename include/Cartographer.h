@@ -44,8 +44,8 @@ public:
 
         std::vector<glm::ivec2> PossibleRegionCells;
         GetCellsInRange(perception->GetLaserMaxRange(),PossibleRegionCells);
-
-        for (int i = perception->GetStartLaserIndex(); i <= perception->GetEndLaserIndex(); ++i) { //Distances.size()
+        for (int i = perception->GetStartLaserIndex(); i <=perception->GetEndLaserIndex(); ++i) { //Distances.size()
+        //for (int i = 133; i <= 137 ; ++i) { //Distances.size()
             double GlobalLaserHeading = perception->GetLaserHeading(i);
             const glm::dvec3 LaserVector = Perception::AngleToVector(GlobalLaserHeading);
             HandleEcho(Distances[i], LaserVector, PossibleRegionCells);
@@ -56,11 +56,15 @@ public:
 
     void HandleEcho(double distance, const glm::dvec3& LaserVector, const std::vector<glm::ivec2>& CellsInRange) {
         const glm::dvec3 &LaserLocation = perception->GetLaserLocation();
-        const glm::dvec3 WorldHitLocation = LaserVector * distance;
+        const glm::dvec3 WorldHitLocation = LaserLocation + LaserVector * distance;
 
         std::vector<glm::ivec2> RegionI;
         std::vector<glm::ivec2> RegionII;
         GetRegions(LaserLocation, WorldHitLocation, LaserVector, CellsInRange, RegionI, RegionII);
+
+        for (const glm::ivec2 &cell : CellsInRange) {
+            //occupancyGrid.UpdateCell(cell, 0.0);
+        }
 
         //Cells in regionI (possible walls)
         for (const auto &cell : RegionI) {
@@ -68,6 +72,7 @@ public:
             double newProbablity = p;//* occupancyGrid.GetCellValue(cell) ;
             occupancyGrid.UpdateCell(cell.x, cell.y, newProbablity);
         }
+
         //Cells in regionII (possible free spaces)
         for (const auto &cell : RegionII) {
             double p = ComputeProbability(DistanceToCell(cell, perception->GetLaserLocation()));
@@ -89,11 +94,11 @@ public:
             glm::dvec3 cellWorldLocation = CellToWorldLocation(cell);
             glm::dvec3 cellLocalLocation = cellWorldLocation - LaserLocation;
 
-            double CellDistance = glm::length(cellLocalLocation);
+            double RobotDistanceToCell = glm::length(cellLocalLocation);
             double RobotDistanceToHit = glm::length(LaserLocation - WorldHitLocation);
 
             //Region 3
-            if (CellDistance > RobotDistanceToHit) { // if cell is beyond the hit skip cell
+            if (RobotDistanceToCell > RobotDistanceToHit) { // if cell is beyond the hit skip cell
                 continue;
             }
 
@@ -102,7 +107,7 @@ public:
             //Is cell within angle?
             if (isWithin) {
                 double CellDistanceFromHit = glm::length(cellLocalLocation - (WorldHitLocation - LaserLocation));
-                if (CellDistanceFromHit < 1.0) {
+                if (CellDistanceFromHit < 2.0) {
                     OutRegionI.push_back(cell);
                 } else {
                     OutRegionII.push_back(cell);
@@ -156,6 +161,8 @@ public:
     glm::dvec3 CellToWorldLocation(int row, int col) const;
     glm::ivec2 WorldLocationToCell(double x, double y) const;
     glm::ivec2 WorldLocationToCell(const glm::dvec3 &WorldLocation) const;
+    void GetCellsInRange(double range, std::vector<glm::ivec2> &outCells);
+
 private:
     double MaxDistance = 40.0;
     SonarModel sonarModel;
@@ -185,9 +192,7 @@ private:
 
 
     double DistanceToCell(glm::ivec2 cell, glm::dvec3 position) const;
-    double GetCellValue(const glm::ivec2 &cell);
     inline double HalfCellSize() const { return cellSize / 2; }
-    void GetCellsInRange(double range, std::vector<glm::ivec2> &outCells);
 
     bool IsOutside(glm::dvec3 Point, glm::dvec3 Normal) const;
 

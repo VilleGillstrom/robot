@@ -26,7 +26,7 @@ glm::dvec3 Robot::GetPosition() const {
     return perception->GetLaserLocation();
 }
 
-const Cartographer &Robot::GetCartographer() const {
+Cartographer &Robot::GetCartographer()  {
     return cartoGrapher;
 }
 

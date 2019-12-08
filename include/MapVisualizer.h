@@ -17,7 +17,7 @@ public:
         label->setScaledContents(true);
         mw.setLayout(boxLayout);
         boxLayout->addWidget(label);
-        mw.setMinimumSize(800,900);
+        mw.setMinimumSize(800,800);
         mw.show();
     }
 
@@ -26,6 +26,8 @@ public:
         const Cartographer &cg = robot->GetCartographer();
 
     }
+
+    void DrawCellsInRange(QPixmap &pixmap, double i);
 
     void Update() {
         if(!Robot) {
@@ -46,6 +48,7 @@ public:
 
         PaintLaserView(pixmap);
         DrawRobot(pixmap);
+      //  DrawCellsInRange(pixmap, 40);
 
         pixmap = pixmap.transformed(QTransform().scale(1, -1));
 
@@ -53,57 +56,9 @@ public:
         label->setPixmap(pixmap);
     }
 
-    void PaintLaserView(QPixmap &pixmap) const {
-        QPainter painter(&pixmap);
-
-        glm::ivec2 rp = GetRobotPositionInMap();
-        const std::shared_ptr<Perception> &Perception = Robot->GetPerception();
-
-        const glm::dvec3 &ll = Perception->GetLaserLeftEnd();
-        const glm::dvec3 &lr = Perception->GetLaserRightEnd();
-
-        auto mll = WorldLocationToMapLocation(ll);
-        auto mlr = WorldLocationToMapLocation(lr);
-        
-        painter.drawLine(rp.x, rp.y, mll.x, mll.y);
-        painter.drawLine(rp.x, rp.y, mlr.x, mlr.y);
-
-
-        auto sa = glm::degrees(-Perception->GetHeading() + Perception->GetStartAngle());
-        auto span = glm::degrees(Perception->GetLaserSpan());
-        int maxRange = Perception->GetLaserMaxRange();
-
-        QRect rectangle(rp.x - maxRange, rp.y - maxRange, maxRange*2, maxRange*2);
-
-        int startAngle = sa * 16;
-        int spanAngle = span * 16;
-
-        painter.setBrush(QBrush(QColor(0,255,0, 50)));
-        painter.drawPie(rectangle, startAngle, spanAngle);
-        painter.end();
-    }
-
-    void DrawRobot(QPixmap &pixmap) const {
-        QPainter painter(&pixmap);
-        glm::ivec2 v = GetRobotPositionInMap();
-        auto rect = QRect(v.x-1, v.y-1, 2, 2);
-        painter.fillRect(rect, QColor(255,0,0));
-        painter.end();
-    }
-
-    void FillOccupancyGrid(const std::vector<std::vector<double>> &grid, int width, int height, QVector<QRgb> &colormap) const {
-        for (int c = 0; c < width; c++) {
-            for (int r = 0; r < height; r++) {
-                double p = (1 -grid[r][c]) * 255;
-                int index = RowColTo1D(r, c, width);
-                colormap[index] = (qRgba(p, p, p, 255));
-                //int red = ((double)c /(double) width) * 255;
-                //int green = ((double)r / (double)height) * 255;
-                //colormap[index] = (qRgba(red, green, 0, 255));
-
-            }
-        }
-    }
+    void PaintLaserView(QPixmap &pixmap) const;
+    void DrawRobot(QPixmap &pixmap) const;
+    void FillOccupancyGrid(const std::vector<std::vector<double>> &grid, int width, int height, QVector<QRgb> &colormap) const;
 
     glm::ivec2 GetRobotPositionInMap() const {
         return WorldLocationToMapLocation(Robot->GetPosition());
