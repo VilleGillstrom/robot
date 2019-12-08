@@ -17,7 +17,7 @@ public:
         label->setScaledContents(true);
         mw.setLayout(boxLayout);
         boxLayout->addWidget(label);
-        mw.setMinimumSize(500,500);
+        mw.setMinimumSize(800,900);
         mw.show();
     }
 
@@ -41,8 +41,6 @@ public:
         QVector<QRgb> colormap(width * height);
         FillOccupancyGrid(grid, width, height, colormap);
 
-
-
         QImage image = QImage((uchar *) colormap.data(), width, height, QImage::Format_ARGB32);
         QPixmap pixmap = QPixmap::fromImage(image);
 
@@ -59,18 +57,38 @@ public:
         QPainter painter(&pixmap);
 
         glm::ivec2 rp = GetRobotPositionInMap();
-        glm::ivec2 ll = Robot->GetPerception()->GetLaserLeftEnd();
-        glm::ivec2 lr = Robot->GetPerception()->GetLaserLeftEnd();
+        const std::shared_ptr<Perception> &Perception = Robot->GetPerception();
 
-       // painter.drawLine(rp.x, rp.y, 200, 100);
+        const glm::dvec3 &ll = Perception->GetLaserLeftEnd();
+        const glm::dvec3 &lr = Perception->GetLaserRightEnd();
+
+        auto mll = WorldLocationToMapLocation(ll);
+        auto mlr = WorldLocationToMapLocation(lr);
+        
+        painter.drawLine(rp.x, rp.y, mll.x, mll.y);
+        painter.drawLine(rp.x, rp.y, mlr.x, mlr.y);
+
+
+        auto sa = glm::degrees(-Perception->GetHeading() + Perception->GetStartAngle());
+        auto span = glm::degrees(Perception->GetLaserSpan());
+        int maxRange = Perception->GetLaserMaxRange();
+
+        QRect rectangle(rp.x - maxRange, rp.y - maxRange, maxRange*2, maxRange*2);
+
+        int startAngle = sa * 16;
+        int spanAngle = span * 16;
+
+        painter.setBrush(QBrush(QColor(0,255,0, 50)));
+        painter.drawPie(rectangle, startAngle, spanAngle);
         painter.end();
     }
 
-    void DrawRobot(QVector<QRgb> &colormap) const {
+    void DrawRobot(QPixmap &pixmap) const {
+        QPainter painter(&pixmap);
         glm::ivec2 v = GetRobotPositionInMap();
-        unsigned int width = GetWidth();
-        int index = RowColTo1D(v.y, v.x, width);
-        colormap[index] = qRgba(255, 0, 0, 255);
+        auto rect = QRect(v.x-1, v.y-1, 2, 2);
+        painter.fillRect(rect, QColor(255,0,0));
+        painter.end();
     }
 
     void FillOccupancyGrid(const std::vector<std::vector<double>> &grid, int width, int height, QVector<QRgb> &colormap) const {

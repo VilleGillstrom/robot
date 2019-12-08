@@ -36,15 +36,20 @@ public:
 
     const std::vector<double> &GetEchoDistances() const { return echoes.distance; }
 
-    double GetStartAngle() const { return laserProperties.StartAngle; }
+    double GetStartAngle() const {
+        return laserProperties.StartAngle + StartLaserIndex * GetAngleIncrement();;
+    }
 
-    double GetEndAngle() const { return laserProperties.EndAngle; }
+    double GetEndAngle() const { return laserProperties.StartAngle + EndLaserIndex *GetAngleIncrement(); }
 
     double GetAngleIncrement() const { return laserProperties.AngleIncrement; }
 
     double GetHeading() const { return glm::eulerAngles(GetOrientation()).z; }
 
-    glm::dvec3 GetHeadingVector() const {
+    double GetLaserMaxRange() const { return 40.0; }
+
+
+    glm::dvec3 GetRobotForwardVector() const {
         return glm::normalize(AngleToVector(GetHeading()));
     }
 
@@ -60,15 +65,35 @@ public:
         return GetHeading() + laserProperties.StartAngle + LaserIndex * laserProperties.AngleIncrement;
     }
 
+    double GetLaserSpan() const {
+        return (GetEndLaserIndex()-GetStartLaserIndex() )*laserProperties.AngleIncrement;
+    }
 
     glm::dvec3 GetLaserLeftEnd() const {
-        return glm::rotateZ(GetHeadingVector(), GetStartAngle());
+        const glm::dvec3 &LaserHeading = glm::rotateZ(GetRobotForwardVector(), GetStartAngle() );
+        return  GetLaserPosition() +  (LaserHeading* 40.0) ;
     }
 
     glm::dvec3 GetLaserRightEnd() const {
-        return glm::rotateZ(GetHeadingVector(), GetEndAngle());
+        const glm::dvec3 LaserHeading = glm::rotateZ(GetRobotForwardVector(), GetStartAngle() );
+        return  GetLaserPosition()+ (LaserHeading * 40.0) ;
+
+    }
+
+    int GetStartLaserIndex() const {
+        return StartLaserIndex;
+    }
+
+    int GetEndLaserIndex() const {
+        return EndLaserIndex;
     }
 private:
+    int StartLaserIndex = 135-35;
+
+
+private:
+    int EndLaserIndex = 135+35;
+
     std::shared_ptr<RobotCommunicationMRDS> communicator;
     /* Last Echoes*/
     RobotCommunicationMRDS::laser_echos echoes;

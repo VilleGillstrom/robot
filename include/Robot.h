@@ -10,13 +10,9 @@ class Robot {
 public:
 
     explicit Robot(const std::shared_ptr<RobotCommunicationMRDS> &RobotCommunicator);
-
     void SetCommunicator(const std::shared_ptr<RobotCommunicationMRDS> &NewRobotCommunicator);
 
     /** Read properties for the robot through RobotCommunicator */
-    void ReadProperties();
-
-
 
 
     double QuatToHeadingAngle(const glm::quat &Orientation) const;

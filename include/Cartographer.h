@@ -72,40 +72,49 @@ public:
         glm::dvec3 cwl = CellToWorldLocation(cell);
         glm::dvec3 cll = cwl - perception->GetLaserPosition();
 
+        glm::dvec3 robotForward = perception->GetRobotForwardVector();
+
         glm::dvec3 AA = glm::normalize(glm::rotateZ(LaserVector, -Beta));
         glm::dvec3 BB = glm::normalize(glm::rotateZ(LaserVector, Beta));
 
-        return IsBoxInside(AA, BB, cll);
+        return IsBoxInside(robotForward, AA, BB, cll);
 
     }
 
-    bool IsBoxInside(glm::dvec3 LineA, glm::dvec3 LineB, glm::dvec3 CellLocalLocation) const {
+    bool IsBoxInside(glm::dvec3 RobotForward, glm::dvec3 LineA, glm::dvec3 LineB, glm::dvec3 CellLocalLocation) const {
         bool insersect = false;
 
         glm::vec3 NormalA = glm::cross( glm::normalize(LineA),glm::dvec3(0, 0, 1));
         glm::vec3 NormalB = glm::cross( glm::dvec3(0, 0, 1), glm::normalize(LineB));
+        glm::vec3 RobotRight = glm::cross( glm::normalize(RobotForward), glm::dvec3(0, 0, 1));
 
         glm::dvec3 NA = GetVertexN(NormalA, CellLocalLocation);
         glm::dvec3 PA = GetVertexP(NormalA, CellLocalLocation);
 
+        glm::dvec3 NB = GetVertexN(NormalB, CellLocalLocation);
+        glm::dvec3 PB = GetVertexP(NormalB, CellLocalLocation);
+
+        glm::dvec3 NRobot = GetVertexN(-RobotForward, CellLocalLocation);
+
+        if(CellLocalLocation.x > -2 &&  CellLocalLocation.x < 0 && CellLocalLocation.y < 2 && CellLocalLocation.y > -2 ) {
+            std::cout << "Fobase" << std::endl;
+        }
+
         if (IsOutside(NA, NormalA)) {
             return false;
         }
-//        else if(IsOutside(PA, NormalA)) {
-//            isInside = true;
-//        }
-
-
-        glm::dvec3 NB = GetVertexN(NormalB, CellLocalLocation);
-        glm::dvec3 PB = GetVertexP(NormalB, CellLocalLocation);
 
         if(IsOutside(NB, NormalB)) {
             return false;
         }
-//        }else if(IsOutside(PB, NormalB)) {
-//            isInside = true;
-//        }
 
+        if(IsOutside(NRobot, -RobotForward)) {
+            return false;
+        }
+
+        if(CellLocalLocation.x > -2 &&  CellLocalLocation.x < 0 && CellLocalLocation.y < 2 && CellLocalLocation.y > -2 ) {
+            std::cout << "Fobase" << std::endl;
+        }
 
         return true;
 
@@ -195,7 +204,7 @@ public:
         double AngleIncrement = perception->GetAngleIncrement();
         double Heading = perception->GetHeading();
 
-        for(int i = 135-35; i < 135+35; ++i) { //Distances.size()
+        for(int i = perception->GetStartLaserIndex(); i < perception->GetEndLaserIndex(); ++i) { //Distances.size()
             double GlobalLaserHeading =   perception->GetLaserHeading(i);
             HandleEcho(Distances[i], position, GlobalLaserHeading);
         }
