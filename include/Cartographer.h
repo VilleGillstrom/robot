@@ -20,7 +20,7 @@ class Cartographer {
 public:
     Cartographer(int cellsize, int xmin, int ymin, int xmax, int ymax);
 
-    void SetPreception(const std::shared_ptr<Perception> &perception);
+    void SetPreception(const std::shared_ptr<Perception> &perception );
 
     void Update() {
         if (!perception) {
