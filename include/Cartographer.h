@@ -1,7 +1,7 @@
 #pragma once
 
 #include <external/glm/vec3.hpp>
-#include "OccupancyGrid.h"
+#include "Grid.h"
 #include "RobotTypes.h"
 #include "SonarModel.h"
 #include "Perception.h"
@@ -14,8 +14,7 @@
 #include <QtWidgets/QDialog>
 
 class Cartographer {
-    OccupancyGrid occupancyGrid;
-    std::shared_ptr<Perception> perception;
+
 
 public:
     Cartographer(int cellsize, int xmin, int ymin, int xmax, int ymax);
@@ -119,7 +118,7 @@ public:
     bool IsCellWithinBoundry(glm::ivec2 cell, glm::dvec3 LaserVector) const;
 
     /** Is the a square given by CellLocalLocation in front of RobotForward and between LineA and Line B*/
-    bool IsBoxInside(glm::dvec3 RobotForward, glm::dvec3 LineA, glm::dvec3 LineB, glm::dvec3 CellLocalLocation) const;
+    bool IsBoxInside(glm::dvec3 LineA, glm::dvec3 LineB, glm::dvec3 CellLocalLocation) const;
 
 
     // The the ponit in a cell that is closest along a normal
@@ -156,43 +155,46 @@ public:
 
     int GetXMin() const;
     int GetYMin() const;
+    int MapWidth() const;
+    int MapHeight() const;
 
     glm::dvec3 CellToWorldLocation(const glm::ivec2 &cell) const;
     glm::dvec3 CellToWorldLocation(int row, int col) const;
     glm::ivec2 WorldLocationToCell(double x, double y) const;
     glm::ivec2 WorldLocationToCell(const glm::dvec3 &WorldLocation) const;
     void GetCellsInRange(double range, std::vector<glm::ivec2> &outCells);
+    double CellSize() const {return cellSize;};
 
+    std::vector<glm::ivec2> GetAdjacent(glm::ivec2 cell) const;
+    float GetProbabilityEmpty(glm::ivec2 cell) const;
 private:
     double MaxDistance = 40.0;
-    SonarModel sonarModel;
-
     double Beta = 0.00872665;         // half main lobe angle(in radians)
 
+    SonarModel sonarModel;
+
+    Grid occupancyGrid;
+    std::shared_ptr<Perception> perception;
 
     double GetCellHeight() const;
-
     double GetCellWidth() const;
 
     inline glm::dvec3 TopRightCellCorner(const glm::dvec3 Location) const {
         return {Location.x + HalfCellSize(), Location.y + HalfCellSize(), Location.z};
     }
-
     inline glm::dvec3 TopLeftCellCorner(const glm::dvec3 Location) const {
         return {Location.x - HalfCellSize(), Location.y + HalfCellSize(), Location.z};
     }
-
     inline glm::dvec3 BotRightCellCorner(const glm::dvec3 Location) const {
         return {Location.x + HalfCellSize(), Location.y - HalfCellSize(), Location.z};
     }
-
     inline glm::dvec3 BotLeftCellCorner(const glm::dvec3 Location) const {
         return {Location.x - HalfCellSize(), Location.y - HalfCellSize(), Location.z};
     }
 
 
     double DistanceToCell(glm::ivec2 cell, glm::dvec3 position) const;
-    inline double HalfCellSize() const { return cellSize / 2; }
+    inline double HalfCellSize() const { return cellSize / 2.0; }
 
     bool IsOutside(glm::dvec3 Point, glm::dvec3 Normal) const;
 

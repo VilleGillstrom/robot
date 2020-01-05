@@ -1,14 +1,13 @@
-//
-// Created by twentyletters on 2019-12-05.
-//
 
 #include "include/Robot.h"
-#include <glm/gtx/string_cast.hpp>
 
-Robot::Robot(const std::shared_ptr<RobotCommunicationMRDS> &RobotCommunicator)  :  cartoGrapher(1, -100, -100, 100, 100) {
+Robot::Robot(const std::shared_ptr<RobotCommunicationMRDS> &RobotCommunicator)  :
+    cartoGrapher(2, -100, -100, 100, 100),
+    navigator(cartoGrapher) {
     this->RobotCommunicator = RobotCommunicator;
     perception = std::make_shared<Perception>(RobotCommunicator);
     cartoGrapher.SetPreception(perception);
+    navigator.SetPerception(perception);
 }
 
 

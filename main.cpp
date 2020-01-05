@@ -1,16 +1,11 @@
 #include <iostream>
 #include "include/RobotCommunicationMRDS.h"
-#include "include/MainWindow.h"
 
 #include <curl/curl.h>
 #include <QApplication>
-#include <Qlabel>
-#include <QtWidgets/QGridLayout>
-#include <glm/gtx/string_cast.hpp>
 #include <include/Robot.h>
 #include <include/MapVisualizer.h>
 #include <QTimer>
-#include <unistd.h>
 #define GLM_ENABLE_EXPERIMENTAL // enable glm::to_string
 
 #define WIDTH 600

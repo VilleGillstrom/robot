@@ -1,7 +1,6 @@
 #include <vector>
-#include <external/cpr/include/cpr/response.h>
-#include <external/cpr/include/cpr/cpr.h>
-#include <external/cpr/include/cpr/cprtypes.h>
+#include <cpr/cpr.h>
+
 #include "../include/RobotCommunicationMRDS.h"
 
 #include <external/json/json.hpp>
@@ -48,7 +47,6 @@ RobotCommunicationMRDS::laser_properties RobotCommunicationMRDS::FetchProperties
             j["EndAngle"].get<double>(),
             j["StartAngle"].get<double>(),
             {x,y,z}
-
     };
 }
 

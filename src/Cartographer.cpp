@@ -32,21 +32,19 @@ void Cartographer::SetPreception(const std::shared_ptr<Perception> &perception) 
     this->perception = perception;
 }
 
-glm::ivec2 Cartographer::WorldLocationToCell(double x, double y) const {
-    int row = std::lround(y - GetYMin());
-    int column = std::lround(x - GetXMin());
-    return {row, column};
-}
-
-glm::dvec3 Cartographer::CellToWorldLocation(const glm::ivec2& cell) const {
-    return CellToWorldLocation(cell.x, cell.y);
-}
-
 
 glm::ivec2 Cartographer::WorldLocationToCell(const glm::dvec3 &WorldLocation) const {
     return WorldLocationToCell(WorldLocation.x, WorldLocation.y);
 }
 
+glm::ivec2 Cartographer::WorldLocationToCell(double x, double y) const {
+    int row = std::lround((y - GetYMin())  / (float)cellSize);
+    int column = std::lround((x - GetXMin()) / (float) cellSize);
+    return {row, column};
+}
+glm::dvec3 Cartographer::CellToWorldLocation(const glm::ivec2& cell) const {
+    return CellToWorldLocation(cell.x, cell.y);
+}
 glm::dvec3 Cartographer::CellToWorldLocation(int row, int col) const {
     double x = (col * GetCellWidth()) + (GetCellWidth() / 2) + GetXMin();
     double y = (row * GetCellHeight()) + (GetCellHeight() / 2) + GetYMin();
@@ -73,7 +71,7 @@ glm::dvec3 Cartographer::GetVertexN(const glm::dvec3 &normal, glm::dvec3 cll) co
     return  point;
 }
 
-bool Cartographer::IsBoxInside(glm::dvec3 RobotForward, glm::dvec3 LineA, glm::dvec3 LineB,
+bool Cartographer::IsBoxInside(glm::dvec3 LineA, glm::dvec3 LineB,
                                glm::dvec3 CellLocalLocation) const {
 
     glm::vec3 NormalA = glm::cross( glm::normalize(LineA),glm::dvec3(0, 0, 1));
@@ -91,9 +89,7 @@ bool Cartographer::IsBoxInside(glm::dvec3 RobotForward, glm::dvec3 LineA, glm::d
 //        return false;
 //    }
 //
-//    if(IsOutside(NRobot, -RobotForward)) {
-//        return false;
-//    }
+
 
     if (IsOutside(CellLocalLocation, NormalA)) {
         return false;
@@ -124,7 +120,7 @@ bool Cartographer::IsCellWithinBoundry(glm::ivec2 cell, glm::dvec3 LaserVector) 
     glm::dvec3 AA = glm::normalize(glm::rotateZ(LaserVector, -Beta));
     glm::dvec3 BB = glm::normalize(glm::rotateZ(LaserVector, Beta));
 
-    return IsBoxInside(robotForward, AA, BB, cll);
+    return IsBoxInside(AA, BB, cll);
 
 }
 
@@ -153,14 +149,42 @@ double Cartographer::DistanceToCell(glm::ivec2 cell, glm::dvec3 position) const 
 
 void Cartographer::GetCellsInRange(double range, std::vector<glm::ivec2> &outCells) {
     outCells.clear();
-    for (int c = 0; c < occupancyGrid.Columns(); ++c) {
-        for (int r = 0; r < occupancyGrid.Rows(); ++r) {
+    for (int c = 0; c < occupancyGrid.NumColumns(); ++c) {
+        for (int r = 0; r < occupancyGrid.NumRows(); ++r) {
             double distance = glm::length(CellToWorldLocation({r, c}) - perception->GetLaserLocation());
             if (distance < range) {
                 outCells.emplace_back(r, c);
             }
         }
     }
+}
+
+int Cartographer::MapWidth() const {return occupancyGrid.NumColumns();}
+
+int Cartographer::MapHeight() const {return occupancyGrid.NumRows();}
+
+std::vector<glm::ivec2> Cartographer::GetAdjacent(glm::ivec2 cell) const {
+    std::vector<glm::ivec2> adjacents, valids;
+    adjacents.emplace_back(cell.x-1, cell.y-1);
+    adjacents.emplace_back(cell.x-1, cell.y);
+    adjacents.emplace_back(cell.x-1, cell.y+1);
+
+    adjacents.emplace_back(cell.x, cell.y-1);
+    adjacents.emplace_back(cell.x, cell.y+1);
+
+    adjacents.emplace_back(cell.x+1, cell.y-1);
+    adjacents.emplace_back(cell.x+1, cell.y);
+    adjacents.emplace_back(cell.x+1, cell.y+1);
+    for(const glm::ivec2& c : adjacents) {
+        if(occupancyGrid.IsValidCell(c)) {
+            valids.push_back(c);
+        }
+    }
+    return valids;
+}
+
+float Cartographer::GetProbabilityEmpty(glm::ivec2 cell) const {
+    return 1.0-occupancyGrid.GetCellValue(cell);
 }
 
 

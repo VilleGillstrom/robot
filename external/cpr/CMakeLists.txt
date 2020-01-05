@@ -70,6 +70,8 @@ cpr_option(USE_SYSTEM_GTEST
 cpr_option(CMAKE_USE_OPENSSL "Use OpenSSL code. Experimental" ON)
 message(STATUS "=======================================================")
 
+
+set(BUILD_CPR_TESTS OFF)
 if(BUILD_CPR_TESTS)
     enable_testing()
 endif()
