@@ -17,7 +17,7 @@ public:
         label->setScaledContents(true);
         mw.setLayout(boxLayout);
         boxLayout->addWidget(label);
-        mw.setMinimumSize(800,800);
+        mw.setMinimumSize(800, 800);
         mw.show();
     }
 
@@ -29,13 +29,14 @@ public:
 
     void DrawCellsInRange(QPixmap &pixmap, double i);
 
+
     void Update() {
-        if(!robot) {
+        if (!robot) {
             return;
         }
 
         const Cartographer &cg = robot->GetCartographer();
-        const auto& grid = cg.GetProbablityGrid();
+        const auto &grid = cg.GetProbablityGrid();
 
         int width = GetWidth();
         int height = GetHeight();
@@ -48,7 +49,10 @@ public:
 
         PaintLaserView(pixmap);
         PaintRobot(pixmap);
-      //  DrawCellsInRange(pixmap, 40);
+        //  DrawCellsInRange(pixmap, 40);
+
+        //PaintFrontier(pixmap);
+        PaintPlannedPath(pixmap);
 
         pixmap = pixmap.transformed(QTransform().scale(1, -1));
         pixmap = pixmap.scaled(800, 800, Qt::IgnoreAspectRatio, Qt::FastTransformation);
@@ -56,9 +60,9 @@ public:
         label->setPixmap(pixmap);
     }
 
-    void PaintLaserView(QPixmap &pixmap) const;
-    void PaintRobot(QPixmap &pixmap) const;
-    void FillOccupancyGrid(const std::vector<std::vector<double>> &grid, int width, int height, QVector<QRgb> &colormap) const;
+
+    void FillOccupancyGrid(const std::vector<std::vector<double>> &grid, int width, int height,
+                           QVector<QRgb> &colormap) const;
 
     glm::ivec2 GetRobotPositionInMap() const;
 
@@ -71,7 +75,7 @@ public:
 private:
     std::shared_ptr<Robot> robot;
     MainWindow mw;
-    QVBoxLayout* boxLayout;
+    QVBoxLayout *boxLayout;
     QLabel *label;
 
 
@@ -81,6 +85,33 @@ private:
     /** Get the map width, will be equal to columns in the occupancyGrid */
     unsigned int GetWidth() const;
 
+    std::vector<QColor> distinct_colors =
+            {
+                    QColor(255, 0, 0),
+                    QColor(0, 255, 0),
+                    QColor(0, 0, 255),
+                    QColor(255, 255, 0),
+                    QColor(0, 255, 255),
+                    QColor(255, 0, 255),
+
+                    QColor(255, 128, 0),
+                    QColor(255, 0, 128),
+                    QColor(255, 128, 128),
+
+                    QColor(255, 128, 255),
+                    QColor(255, 255, 128),
+
+                    QColor(128, 255, 255),
+                    QColor(128, 255, 128),
+
+                    QColor(128, 128, 255),
+
+            };
+
+    void PaintLaserView(QPixmap &pixmap);
+    void PaintRobot(QPixmap &pixmap);
+    void PaintFrontier(QPixmap &pixmap);
+    void PaintPlannedPath(QPixmap &pixmap);
 };
 
 

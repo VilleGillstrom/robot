@@ -5,7 +5,7 @@
 #include "RobotCommunicationMRDS.h"
 #include "Cartographer.h"
 #include "Perception.h"
-#include "Navigator.h"
+#include "Planner.h"
 
 class Robot {
 public:
@@ -28,6 +28,7 @@ public:
 
 
     Cartographer &GetCartographer();
+    Planner &GetPlanner();
     std::shared_ptr<Perception> GetPerception() const;
 
 private:
@@ -35,7 +36,7 @@ private:
     std::shared_ptr<RobotCommunicationMRDS> RobotCommunicator;
     std::shared_ptr<Perception> perception;
     Cartographer cartoGrapher;
-    Navigator navigator;
+    Planner planner;
 
 
 };

@@ -46,7 +46,7 @@ file(GLOB robot_HEAD "include/*.h")
 file(GLOB robot_SRC "src/*.cpp")
 
 
-add_executable(${EXECNAME_MAIN} main.cpp ${robot_HEAD} ${robot_SRC} external/json/json.hpp )
+add_executable(${EXECNAME_MAIN} main.cpp ${robot_HEAD} ${robot_SRC} external/json/json.hpp)
 
 include_directories(${CURL_INCLUDE_DIRS})
 

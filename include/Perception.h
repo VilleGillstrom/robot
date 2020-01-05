@@ -16,7 +16,7 @@ public:
     }
 
     void ReadSensors() {
-        communicator->ReadSensors();
+        communicator->ReadRobot();
         echoes = communicator->GetEchoes();
         localization = communicator->GetLocalization();
     }

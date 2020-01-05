@@ -3,7 +3,7 @@
 
 
 Cartographer::Cartographer(int cellsize, int xmin, int ymin, int xmax, int ymax) :
-    occupancyGrid(cellsize, xmin, ymin, xmax, ymax) {
+    occupancyGrid(cellsize, xmin, ymin, xmax, ymax), exploredGrid(cellsize, xmin, ymin, xmax,ymax, 0) {
     this->cellSize = cellsize;
 }
 
@@ -175,7 +175,7 @@ std::vector<glm::ivec2> Cartographer::GetAdjacent(glm::ivec2 cell) const {
     adjacents.emplace_back(cell.x+1, cell.y-1);
     adjacents.emplace_back(cell.x+1, cell.y);
     adjacents.emplace_back(cell.x+1, cell.y+1);
-    for(const glm::ivec2& c : adjacents) {
+    for(glm::ivec2 c : adjacents) {
         if(occupancyGrid.IsValidCell(c)) {
             valids.push_back(c);
         }
@@ -183,8 +183,31 @@ std::vector<glm::ivec2> Cartographer::GetAdjacent(glm::ivec2 cell) const {
     return valids;
 }
 
-float Cartographer::GetProbabilityEmpty(glm::ivec2 cell) const {
-    return 1.0-occupancyGrid.GetCellValue(cell);
+std::vector<glm::ivec2> Cartographer::GetNeighbors(glm::ivec2 cell) const {
+    std::vector<glm::ivec2> adjacents, valids;
+    adjacents.emplace_back(cell.x, cell.y-1);
+    adjacents.emplace_back(cell.x, cell.y+1);
+    adjacents.emplace_back(cell.x-1, cell.y);
+    adjacents.emplace_back(cell.x+1, cell.y);
+    for(glm::ivec2 c : adjacents) {
+        if(occupancyGrid.IsValidCell(c)) {
+            valids.push_back(c);
+        }
+    }
+    return valids;
+}
+
+
+double Cartographer::GetProbabilityEmpty(glm::ivec2 cell) const {
+    return 1.0 - occupancyGrid.GetCellValue(cell);
+}
+
+bool Cartographer::IsUnknown(glm::ivec2 cell) const {
+    return exploredGrid.GetCellValue(cell) < 0.5;
+}
+
+void Cartographer::AddKnownCell(const glm::ivec2 &cell) {
+    exploredGrid.UpdateCell(cell, 1.0);
 }
 
 

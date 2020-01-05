@@ -81,6 +81,8 @@ public:
     }
 
 
+    void AddKnownCell(const glm::ivec2 &cell);
+
     void GetRegions(const glm::dvec3 LaserLocation, const glm::dvec3 WorldHitLocation, const glm::dvec3 &LaserVector,
                     const std::vector<glm::ivec2> &CellsInRange,
                     std::vector<glm::ivec2> &OutRegionI, std::vector<glm::ivec2> &OutRegionII) {
@@ -111,6 +113,7 @@ public:
                 } else {
                     OutRegionII.push_back(cell);
                 }
+                AddKnownCell(cell);
             }
         }
     }
@@ -165,8 +168,18 @@ public:
     void GetCellsInRange(double range, std::vector<glm::ivec2> &outCells);
     double CellSize() const {return cellSize;};
 
+    /* Get cells next to cell,include diagonal */
     std::vector<glm::ivec2> GetAdjacent(glm::ivec2 cell) const;
-    float GetProbabilityEmpty(glm::ivec2 cell) const;
+    /* Get cells next to cell, exclude diagonal */
+
+    std::vector<glm::ivec2> GetNeighbors(glm::ivec2 cell) const;
+    double GetProbabilityEmpty(glm::ivec2 cell) const;
+    bool IsUnknown(glm::ivec2 cell) const;
+
+  /*  // A point is the (x,y) if cellsize would be 1, cell is transformed with respect to cellsize
+    glm::ivec2 PointToCell(glm::ivec2 point) const {
+        return (point.x/cellSize, point.y/cellSize);
+    };*/
 private:
     double MaxDistance = 40.0;
     double Beta = 0.00872665;         // half main lobe angle(in radians)
@@ -174,6 +187,7 @@ private:
     SonarModel sonarModel;
 
     Grid occupancyGrid;
+    Grid exploredGrid;
     std::shared_ptr<Perception> perception;
 
     double GetCellHeight() const;

@@ -1,4 +1,6 @@
-
+#include <iostream>
+#include <vector>
+#include <unordered_set>
 #include "include/MapVisualizer.h"
 
 unsigned int MapVisualizer::GetHeight() const {
@@ -23,11 +25,10 @@ void MapVisualizer::DrawCellsInRange(QPixmap &pixmap, double range)  {
     painter.end();
 }
 
-void MapVisualizer::PaintLaserView(QPixmap &pixmap) const {
+void MapVisualizer::PaintLaserView(QPixmap &pixmap)  {
     QPainter painter(&pixmap);
-    QPen pen;
-    pen.setStyle(Qt::PenStyle::NoPen);
-    painter.setPen(pen);
+    painter.setBrush(QBrush(QColor(0,255,0, 50)));
+    painter.setPen(QPen (Qt::black, 1, Qt::NoPen));
 
     glm::ivec2 rp = GetRobotPositionInMap();
     const std::shared_ptr<Perception> &Perception = robot->GetPerception();
@@ -51,14 +52,13 @@ void MapVisualizer::PaintLaserView(QPixmap &pixmap) const {
     int startAngle = sa * 16;
     int spanAngle = span * 16;
 
-    painter.setBrush(QBrush(QColor(0,255,0, 50)));
 
 
     painter.drawPie(rectangle, startAngle, spanAngle);
     painter.end();
 }
 
-void MapVisualizer::PaintRobot(QPixmap &pixmap) const {
+void MapVisualizer::PaintRobot(QPixmap &pixmap) {
     QPainter painter(&pixmap);
     glm::ivec2 v = GetRobotPositionInMap();
     auto rect = QRect(v.x-1, v.y-1, 2, 2);
@@ -90,4 +90,53 @@ glm::ivec2 MapVisualizer::WorldLocationToMapLocation(const glm::dvec3 &v) const 
     glm::ivec2 cell = cg.WorldLocationToCell(v);
     return {cell.y, cell.x}; //Invert since cell.x = row, cell.y = column
 
+}
+
+void MapVisualizer::PaintFrontier(QPixmap &pixmap) {
+    QPainter painter(&pixmap);
+    painter.setPen(QPen(QColor(0,0,255,255), 1, Qt::PenStyle::SolidLine));
+
+    Planner& planner = robot->GetPlanner();
+    std::vector<Frontier> frontiers;
+    std::vector<glm::ivec2> pos;
+    planner.FindFrontiers(frontiers);
+
+    unsigned int numfrontiers = frontiers.size();
+    int count = 0;
+    std::cout << numfrontiers;
+    for(const Frontier& frontier : frontiers) {
+        QColor color = count < distinct_colors.size() ? distinct_colors[count] : QColor(0, 0, 255);
+        painter.setPen(QPen(color, 1, Qt::PenStyle::SolidLine));
+
+        for(const glm::ivec2& point : frontier.GetCells()) {
+            painter.drawPoint(point.y, point.x);
+        }
+
+        painter.setPen(QPen(Qt::red, 1, Qt::PenStyle::SolidLine));
+        glm::ivec2 centroid = frontier.GetCentroid();
+        painter.drawPoint(centroid.y, centroid.x);
+        count ++;
+
+    }
+
+
+}
+
+
+void MapVisualizer::PaintPlannedPath(QPixmap &pixmap) {
+    QPainter painter(&pixmap);
+
+    Planner& planner = robot->GetPlanner();
+
+    glm::ivec2 target = planner.SelectFrontier().GetCentroid();
+    std::vector<glm::ivec2> cells = planner.ComputePath();
+
+
+
+    painter.setPen(QPen(QColor(0,255,0,255), 1, Qt::PenStyle::SolidLine));
+    for(auto c : cells) {
+        painter.drawPoint(c.y, c.x);
+    }
+    painter.setPen(QPen(QColor(0,0,255,255), 1, Qt::PenStyle::SolidLine));
+    painter.drawPoint(target.y, target.x);
 }

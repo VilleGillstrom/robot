@@ -2,20 +2,19 @@
 
 #include "include/Grid.h"
 
-Grid::Grid(int xmin, int ymin, int xmax, int ymax)
-        : Grid(1, xmin, ymin, xmax, ymax)
+
+Grid::Grid(int cellsize, int xmin, int ymin, int xmax, int ymax) : Grid(cellsize, xmin, ymin, xmax, ymax, 0.5)
 {
 }
 
-Grid::Grid(int cellsize, int xmin, int ymin, int xmax, int ymax)
+Grid::Grid(int cellsize, int xmin, int ymin, int xmax, int ymax, float value)
         :Xmin(xmin), Xmax(xmax), Ymin(ymin), Ymax(ymax)  {
     int width = ceil(((xmax - xmin) / (double) cellsize));
     int height = ceil(((ymax - ymin) / (double) cellsize));
 
 
-    grid = std::vector<std::vector<double>>(width, std::vector<double>(height, 0.5));
+    grid = std::vector<std::vector<double>>(width, std::vector<double>(height, value));
 }
-
 
 int Grid::NumColumns() const {
     return grid.size();

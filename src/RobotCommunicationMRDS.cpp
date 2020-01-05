@@ -76,6 +76,16 @@ RobotCommunicationMRDS::robot_localization RobotCommunicationMRDS::FetchLocaliza
     return {orientation, position, timestamp};
 }
 
+json RobotCommunicationMRDS::FetchDifferentialDriveJson() {
+    cpr::Response r = cpr::Get(cpr::Url{GetDifferentialDriveUrl()});
+    if (r.status_code != cpr::status::HTTP_OK) {
+        std::stringstream ss;
+        ss << "Bad Localization request: " << r.status_code;
+        throw std::runtime_error(ss.str());
+    }
+    return json::parse(r.text);
+}
+
 
 RobotCommunicationMRDS::RobotCommunicationMRDS(const std::string& host, int port) {
     this->host = host;
@@ -94,6 +104,10 @@ std::string RobotCommunicationMRDS::GetLocalizationUrl() const {
     return MakeFullUrl("/lokarria/localization");
 }
 
+std::string RobotCommunicationMRDS::GetDifferentialDriveUrl() const {
+    return MakeFullUrl("/lokarria/differentialdrive");
+}
+
 std::string RobotCommunicationMRDS::MakeFullUrl(const std::string &path) const {
     std::stringstream ss;
     ss << host << ":" << port << path;
@@ -105,11 +119,20 @@ void RobotCommunicationMRDS::ReadProperties() {
     robotProperties = FetchProperties();
 }
 
-void RobotCommunicationMRDS::ReadSensors() {
+void RobotCommunicationMRDS::ReadRobot() {
     auto future_echoes = std::async([this]() { return FechEchoes(); });
     auto future_localization = std::async([this]() { return FetchLocalization(); });
+    auto future_differential = std::async([this]() { return FetchDifferentialDriveJson(); });
+
     laserEchoes = future_echoes.get();
     laserLocalization = future_localization.get();
+    differentialDriveJson = future_differential.get();
+}
+
+void RobotCommunicationMRDS::SetSpeed(int speed) {
+    differentialDriveJson["Command"]["TargetLinearSpeed"] = speed;
+    cpr::Response r = cpr::Post(cpr::Url{GetDifferentialDriveUrl()}, cpr::Body{differentialDriveJson.dump()});
+
 }
 
 

@@ -2,12 +2,12 @@
 #include "include/Robot.h"
 
 Robot::Robot(const std::shared_ptr<RobotCommunicationMRDS> &RobotCommunicator)  :
-    cartoGrapher(2, -100, -100, 100, 100),
-    navigator(cartoGrapher) {
+        cartoGrapher(2, -100, -100, 100, 100),
+        planner(cartoGrapher) {
     this->RobotCommunicator = RobotCommunicator;
     perception = std::make_shared<Perception>(RobotCommunicator);
     cartoGrapher.SetPreception(perception);
-    navigator.SetPerception(perception);
+    planner.SetPerception(perception);
 }
 
 
@@ -31,4 +31,8 @@ Cartographer &Robot::GetCartographer()  {
 
 std::shared_ptr<Perception> Robot::GetPerception() const {
     return perception;
+}
+
+Planner &Robot::GetPlanner()  {
+    return planner;
 }

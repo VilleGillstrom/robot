@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 #include <future>
 #include <external/glm/gtc/quaternion.hpp>
+#include <external/json/json.hpp>
 
 class RobotCommunicationMRDS {
 public:
@@ -36,15 +37,17 @@ public:
     /** Read the properties of the robot (through host) */
     void ReadProperties();
     /** Read the laser sensors (through host) */
-    void ReadSensors();
+    void ReadRobot();
 
-
+    /** Set speed*/
+    void SetSpeed(int speed);
     /** Read the last fetched echoes by ReadSensors() */
     laser_echos GetEchoes() const { return laserEchoes; };
     /** Read the last fetched properties by ReadSensors() */
     laser_properties GetProperties() const { return robotProperties; };
     /** Read the last fetched localization by ReadSensors() */
     robot_localization GetLocalization() const { return laserLocalization; };
+
 
 
 private:
@@ -55,15 +58,22 @@ private:
     laser_echos FechEchoes() const;
     laser_properties FetchProperties() const;
     robot_localization FetchLocalization() const;
+    nlohmann::json FetchDifferentialDriveJson();
 
     std::string GetPropertiesUrl() const;
     std::string GetEchoesUrl() const;
     std::string GetLocalizationUrl() const;
+    std::string GetDifferentialDriveUrl() const;
+
     std::string MakeFullUrl(const std::string &path) const;
 
     /** Stores the last feches when using Read*()*/
     laser_echos laserEchoes;
     laser_properties robotProperties;
     robot_localization laserLocalization;
+
+
+    nlohmann::json differentialDriveJson;
+
 };
 
