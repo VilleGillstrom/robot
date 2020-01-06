@@ -93,7 +93,7 @@ glm::ivec2 Navigator::NextTargetCell() const {
 void Navigator::UpdateRobotDrive() {
     glm::dvec3 robotForward = cartoGrapher.RobotForwardVector();
     float angularspeed = ComputeAngularSpeed(robotForward, targetForwardVector);
-    std::cout << "speed: " << targetSpeed << "angularspeed: " << angularspeed << std::endl;
+    //std::cout << "speed: " << targetSpeed << "angularspeed: " << angularspeed << std::endl;
     communicator->SetSpeedAndAngular(targetSpeed, angularspeed);
 }
 

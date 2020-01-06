@@ -8,12 +8,13 @@
 #include "Planner.h"
 #include "Navigator.h"
 #include "Motor.h"
+#include "ReactiveControl.h"
 
 class Robot {
 public:
 
     explicit Robot(const std::shared_ptr<RobotCommunicationMRDS> &RobotCommunicator);
-    void SetCommunicator(const std::shared_ptr<RobotCommunicationMRDS> &NewRobotCommunicator);
+    Robot(const std::shared_ptr<RobotCommunicationMRDS> &RobotCommunicator, int xmin, int ymin, int xmax, int ymax);
 
     /** Read properties for the robot through RobotCommunicator */
     glm::dvec3 GetPosition() const;
@@ -21,10 +22,9 @@ public:
 
     void Update() {
         perception->ReadSensors();
-
         cartoGrapher.Update();
         navigator->Navigate();
-        //perception->React();
+        reactivecontrol->React();
     }
 
 
@@ -40,6 +40,7 @@ private:
     std::shared_ptr<Planner> planner;
     std::shared_ptr<Navigator> navigator;
     std::shared_ptr<Motor> motor;
+    std::shared_ptr<ReactiveControl> reactivecontrol;
 
     Cartographer cartoGrapher;
 

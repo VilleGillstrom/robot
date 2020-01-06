@@ -48,11 +48,11 @@ public:
         QPixmap pixmap = QPixmap::fromImage(image);
 
         PaintLaserView(pixmap);
-        PaintRobot(pixmap);
+        PaintPlannedPath(pixmap);
+       // PaintRobot(pixmap);
         //  DrawCellsInRange(pixmap, 40);
 
         //PaintFrontier(pixmap);
-        PaintPlannedPath(pixmap);
 
         pixmap = pixmap.transformed(QTransform().scale(1, -1));
         pixmap = pixmap.scaled(800, 800, Qt::IgnoreAspectRatio, Qt::FastTransformation);

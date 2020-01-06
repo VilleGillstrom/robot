@@ -21,21 +21,20 @@ public:
 
 
     bool IsNextTargetInPathWithinRange();
-
     void MoveTowardNextTargetInPath();
-
     void SelectNextTargetInPath();
-
     bool HasReachedGoal();
-
     void UpdateRobotDrive();
 
     void Navigate() {
-        std::cout << "current target: (" << nextTargetIdx << "/" << pathToTarget.size() << ")" << std::endl;
+        //std::cout << "current target: (" << nextTargetIdx << "/" << pathToTarget.size() << ")" << std::endl;
 
         if (routine == RobotRoutine::GOAL) {
+
+            std::cout << "Goal stuff" << std::endl;
             GoalRoutine();
         } else if (routine == RobotRoutine::EXPLORE) {
+            std::cout << "Exploring" << std::endl;
             ExploreRoutine();
         }
         UpdateRobotDrive();
@@ -67,19 +66,14 @@ public:
         targetForwardVector = -cartoGrapher.RobotForwardVector();
         communicator->SetSpeedAndAngular(0, 2);
         targetSpeed = 0;
-        initializedGoalRoutine = true;
         routine = GOAL;
     }
 
     void GoalRoutine() {
         float d = glm::dot(targetForwardVector, cartoGrapher.RobotForwardVector());
-        std::cerr << d;
-
         if ((1 - d) < 0.2) {
-            //Finished goal routine
-            initializedGoalRoutine = false;
+            //Has rotated
             StartExploring();
-
         }
     }
 
@@ -111,11 +105,9 @@ private:
     bool hasTarget;
     std::vector<glm::ivec2> pathToTarget;
 
-    float robotSize = 2; /* Size of the robot */
-    float robotRange = 4; /* Is considered having reacher a point if within this distance*/
+    float robotRange = 2.5; /* Is considered having reached a point if within this distance*/
 
 
-    bool initializedGoalRoutine;
 
     bool HasTarget();
 

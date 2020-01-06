@@ -10,6 +10,8 @@ class Perception {
 public:
     Perception(const std::shared_ptr<RobotCommunicationMRDS> &Communicator);
 
+
+
     void ReadSensors();
     glm::dvec3 GetLaserLocation() const;
     glm::dvec3 GetPosition() const;
@@ -36,6 +38,8 @@ public:
     int GetStartLaserIndex() const;
     int GetEndLaserIndex() const;
     int LastEchoTimestamp() const;
+
+
 private:
     int StartLaserIndex = 135-135;
     int EndLaserIndex = 135+135;
@@ -47,5 +51,6 @@ private:
     RobotCommunicationMRDS::robot_localization localization{};
     /* laser properties */
     RobotCommunicationMRDS::laser_properties laserProperties{};
+
 
 };

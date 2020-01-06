@@ -8,6 +8,11 @@
 
 using namespace nlohmann;
 
+RobotCommunicationMRDS::RobotCommunicationMRDS(const std::string& host, std::string port) {
+    this->host = host;
+    this->port = port;
+}
+
 
 RobotCommunicationMRDS::laser_echos RobotCommunicationMRDS::FechEchoes()  const {
     cpr::Response r = cpr::Get(cpr::Url{GetEchoesUrl()});
@@ -87,10 +92,7 @@ json RobotCommunicationMRDS::FetchDifferentialDriveJson() {
 }
 
 
-RobotCommunicationMRDS::RobotCommunicationMRDS(const std::string& host, int port) {
-    this->host = host;
-    this->port = port;
-}
+
 
 std::string RobotCommunicationMRDS::GetPropertiesUrl() const {
     return MakeFullUrl("/lokarria/laser/properties");

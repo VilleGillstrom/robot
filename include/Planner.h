@@ -28,9 +28,8 @@ public:
 
     }
     std::vector<glm::ivec2> ComputePath();
-    std::vector<glm::ivec2> ComputePathToCell(glm::ivec2 cell);
 
-    Frontier SelectFrontier();
+    std::vector<Frontier> OrderedFrontiers();
 
 
     void FindFrontiers(std::vector<Frontier> &frontiers);
@@ -52,11 +51,13 @@ private:
 
     bool IsFrontierPoint(const point &p) const;
 
-    int TwoDtoOneD(int row, int col, int colmax) const {
-        return row + col * colmax;
-    }
+
 
     void ConstructPath(const std::vector<std::vector<glm::ivec2>>& cameFrom, const glm::ivec2& end, std::vector<glm::ivec2>& outPath);
+
+    std::vector<glm::ivec2> GetPossibleNodesAStar(const point &q) const;
+
+    bool ComputePathToCell(glm::ivec2 cell, std::vector<glm::ivec2>& path);
 };
 
 

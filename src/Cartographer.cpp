@@ -2,7 +2,7 @@
 #include "include/Cartographer.h"
 
 
-Cartographer::Cartographer(int cellsize, int xmin, int ymin, int xmax, int ymax) :
+Cartographer::Cartographer(double cellsize, int xmin, int ymin, int xmax, int ymax) :
     occupancyGrid(cellsize, xmin, ymin, xmax, ymax), exploredGrid(cellsize, xmin, ymin, xmax,ymax, 0) {
     this->cellSize = cellsize;
 }
@@ -14,6 +14,14 @@ int Cartographer::GetXMin() const {
 
 int Cartographer::GetYMin() const {
     return occupancyGrid.Ymin;
+}
+
+int Cartographer::GetXMax() const {
+    return occupancyGrid.Xmax;
+}
+
+int Cartographer::GetYMax() const {
+    return occupancyGrid.Ymax;
 }
 
 const std::vector<std::vector<double>> &Cartographer::GetProbablityGrid() const {
@@ -40,6 +48,13 @@ glm::ivec2 Cartographer::WorldLocationToCell(const glm::dvec3 &WorldLocation) co
 glm::ivec2 Cartographer::WorldLocationToCell(double x, double y) const {
     int row = std::lround((y - GetYMin())  / (float)cellSize);
     int column = std::lround((x - GetXMin()) / (float) cellSize);
+
+    row = std::max(row,0);
+    row = std::min(row, GetYMax());
+
+    column = std::max(column,0);
+    column = std::min(column, GetXMax());
+
     return {row, column};
 }
 glm::dvec3 Cartographer::CellToWorldLocation(const glm::ivec2& cell) const {
@@ -181,6 +196,17 @@ std::vector<glm::ivec2> Cartographer::GetAdjacent(glm::ivec2 cell) const {
         }
     }
     return valids;
+}
+
+std::vector<glm::ivec2> Cartographer::GetEmptyAdjacent(glm::ivec2 cell) const {
+    std::vector<glm::ivec2> adjacents = GetAdjacent(cell);
+    std::vector<glm::ivec2> empty_adjacents;
+    for (glm::ivec2 c : adjacents) {
+        if(occupancyGrid.GetCellValue(c) < 0.6) {
+            empty_adjacents.push_back(c);
+        }
+    }
+    return empty_adjacents;
 }
 
 std::vector<glm::ivec2> Cartographer::GetNeighbors(glm::ivec2 cell) const {

@@ -4,11 +4,12 @@
 #include "include/MapVisualizer.h"
 
 unsigned int MapVisualizer::GetHeight() const {
-    return robot->GetCartographer().GetProbablityGrid().at(0).size();
+    return robot->GetCartographer().MapHeight();
 }
 
 unsigned int MapVisualizer::GetWidth() const {
-    return robot->GetCartographer().GetProbablityGrid().size();
+    return robot->GetCartographer().MapWidth();
+
 }
 
 void MapVisualizer::DrawCellsInRange(QPixmap &pixmap, double range)  {
@@ -127,10 +128,10 @@ void MapVisualizer::PaintPlannedPath(QPixmap &pixmap) {
     auto nextTargetCell = navigator.GetCurrentTargetCell();
 
 
-    painter.setPen(QPen(QColor(0,255,0,255), 1, Qt::PenStyle::SolidLine));
+    painter.setPen(QPen(QColor(0,255,255,128), 1, Qt::PenStyle::SolidLine));
     for(auto c : path) {
         painter.drawPoint(c.y, c.x);
     }
-    painter.setPen(QPen(QColor(0,128,128,255), 1, Qt::PenStyle::SolidLine));
+    painter.setPen(QPen(QColor(0,255,128,255), 1, Qt::PenStyle::SolidLine));
     painter.drawPoint(nextTargetCell.y, nextTargetCell.x);
 }

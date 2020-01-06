@@ -3,11 +3,11 @@
 #include "include/Grid.h"
 
 
-Grid::Grid(int cellsize, int xmin, int ymin, int xmax, int ymax) : Grid(cellsize, xmin, ymin, xmax, ymax, 0.5)
+Grid::Grid(double cellsize, int xmin, int ymin, int xmax, int ymax) : Grid(cellsize, xmin, ymin, xmax, ymax, 0.5)
 {
 }
 
-Grid::Grid(int cellsize, int xmin, int ymin, int xmax, int ymax, float value)
+Grid::Grid(double cellsize, int xmin, int ymin, int xmax, int ymax, float value)
         :Xmin(xmin), Xmax(xmax), Ymin(ymin), Ymax(ymax)  {
     int width = ceil(((xmax - xmin) / (double) cellsize));
     int height = ceil(((ymax - ymin) / (double) cellsize));
@@ -17,11 +17,13 @@ Grid::Grid(int cellsize, int xmin, int ymin, int xmax, int ymax, float value)
 }
 
 int Grid::NumColumns() const {
-    return grid.size();
+    return NumRows() > 0 ? grid[0].size() : 0;
+
 }
 
 int Grid::NumRows() const {
-    return NumColumns() > 0 ? grid[0].size() : 0;
+    return grid.size();
+
 }
 
 const std::vector<std::vector<double>> &Grid::GetGrid() const {

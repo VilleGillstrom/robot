@@ -6,6 +6,8 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include <future>
+#include <sstream>
+#include <iterator>
 #include <external/glm/gtc/quaternion.hpp>
 #include <external/json/json.hpp>
 
@@ -32,7 +34,7 @@ public:
     };
 
     RobotCommunicationMRDS() = default;
-    RobotCommunicationMRDS(const std::string &host, int port);
+    RobotCommunicationMRDS(const std::string &host, std::string port);
 
     /** Read the properties of the robot (through host) */
     void ReadProperties();
@@ -53,10 +55,27 @@ public:
     /** Set speed and angular targets*/
     void SetSpeedAndAngular(float speed, float angular);
 
+    bool SetURL(const std::string& url) {
+        std::string cpy = url;
+
+
+        //WHY IS SIMPLE STUFF LIKE SPLITTING STRING A HEADACHE !? /endrant
+        std::vector<std::string> strings;
+        std::stringstream f(url);
+        std::string s;
+        while (getline(f, s, ':')) {
+            strings.push_back(s);
+        }
+
+        host = "http:";
+        host.append(strings[1]);
+        port = strings[2];
+        std::cout << host << std::endl << port << std::endl;
+    }
 
 private:
     std::string host;
-    int port;
+    std::string port;
 
     /** Fetch from host */
     laser_echos FechEchoes() const;

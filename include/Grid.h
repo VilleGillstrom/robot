@@ -8,8 +8,8 @@
 class Grid {
 
 public:
-    Grid(int cellsize, int xmin, int ymin, int xmax, int ymax);
-    Grid(int cellsize, int xmin, int ymin, int xmax, int ymax, float value);
+    Grid(double cellsize, int xmin, int ymin, int xmax, int ymax);
+    Grid(double cellsize, int xmin, int ymin, int xmax, int ymax, float value);
 
     /** Set cell value */
     void UpdateCell(int row, int column, double value);

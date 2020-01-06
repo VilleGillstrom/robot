@@ -4,13 +4,21 @@
 
 
 std::vector<glm::ivec2> Planner::ComputePath() {
-    Frontier frontier = SelectFrontier();
-    glm::ivec2 centroid = frontier.GetCentroid();
+    std::vector<Frontier> frontiers = OrderedFrontiers();
+    std::vector<glm::ivec2> outpath;
 
-    return ComputePathToCell(centroid);
+    for (const auto &frontier : frontiers) {
+        glm::ivec2 centroid = frontier.GetCentroid();
+        if(ComputePathToCell(centroid, outpath)) {
+            break;
+        };
+    }
+
+    return outpath;
 }
 
-std::vector<glm::ivec2> Planner::ComputePathToCell(glm::ivec2 cell) {
+//A Star from wikipedias psuedocode https://en.wikipedia.org/wiki/A*_search_algorithm
+bool Planner::ComputePathToCell(glm::ivec2 cell, std::vector<glm::ivec2>& path) {
 
     auto map = mCartographer.GetProbablityGrid();
     glm::ivec2 start = GetRobotPoint();
@@ -49,18 +57,17 @@ std::vector<glm::ivec2> Planner::ComputePathToCell(glm::ivec2 cell) {
 
 
         if(current == goal) {
-            std::vector<glm::ivec2> path;
             ConstructPath(cameFrom, current, path);
-            return path;
+            return true;
         }
 
         openSet.erase(std::remove(openSet.begin(), openSet.end(), current ), openSet.end());
 
-        std::vector<glm::ivec2> neighbors = mCartographer.GetNeighbors(current);
+        std::vector<glm::ivec2> neighbors = GetPossibleNodesAStar(current);
         for(auto neighbor : neighbors) {
             // d(current,neighbor) is the weight of the edge from current to neighbor
             // tentative_gScore is the distance from start to the neighbor through current
-            float tentative_gScore = gScore[current.x][current.y] + 1;
+            float tentative_gScore = gScore[current.x][current.y] + glm::distance(mCartographer.CellToWorldLocation({current.x,current.y}), mCartographer.CellToWorldLocation({neighbor.x,neighbor.y}));
             float neighbor_score = gScore[neighbor.x][neighbor.y];
             if(tentative_gScore < neighbor_score) {
                 // This path to neighbor is better than any previous one. Record it!
@@ -74,7 +81,7 @@ std::vector<glm::ivec2> Planner::ComputePathToCell(glm::ivec2 cell) {
         }
     }
     std::cerr << "Unable to find path to cell" << std::endl;
-    return std::vector<glm::ivec2>();
+    return false;
 }
 
 Planner::mark_type Planner::GetMark(const glm::ivec2 &point) const {
@@ -95,9 +102,6 @@ bool Planner::IsFrontierPoint(const Planner::point &p) const {
     bool isFrontier = mCartographer.IsUnknown(p) && HasOpenSpaceNeighbor(p);
     return isFrontier;
 }
-
-//A Star from wikipedias psuedocode https://en.wikipedia.org/wiki/A*_search_algorithm
-
 
 void Planner::FindFrontiers(std::vector<Frontier> &frontiers) {
     marks = std::vector<std::vector<mark_type>>(mCartographer.MapHeight(),
@@ -169,6 +173,20 @@ void Planner::FindFrontiers(std::vector<Frontier> &frontiers) {
     }
 }
 
+std::vector<glm::ivec2>Planner::GetPossibleNodesAStar(const Planner::point &q) const {
+    std::vector<glm::ivec2> out;
+
+    const std::vector<glm::ivec2> &EmptyAdjs = mCartographer.GetEmptyAdjacent(q);
+
+    for (const glm::ivec2 &emptyAdj : EmptyAdjs) {
+        const std::vector<glm::ivec2> &AdjEmptyAdjs = mCartographer.GetEmptyAdjacent(emptyAdj) ;
+        if(AdjEmptyAdjs.size() == 8) {
+            out.push_back(emptyAdj);
+        }
+    }
+    return out;
+}
+
 Planner::point Planner::GetRobotPoint() const {
     glm::dvec3 loc = mPerception->GetLaserLocation();
     point robot_point = mCartographer.WorldLocationToCell(loc.x, loc.y);
@@ -178,24 +196,34 @@ Planner::point Planner::GetRobotPoint() const {
 bool Planner::HasOpenSpaceNeighbor(const Planner::point &v) const {
     std::vector<point> neighbors = mCartographer.GetAdjacent(v);
     for (point n : neighbors) {
-        if (mCartographer.GetProbabilityEmpty(n) > 0.5) {
+        if (mCartographer.GetProbabilityEmpty(n) > 0.6) {
             return true;
         }
     }
     return false;
 }
 
-Frontier Planner::SelectFrontier() {
+std::vector<Frontier> Planner::OrderedFrontiers() {
     std::vector<Frontier> frontiers;
+    std::vector<Frontier> ordered_frontiers;
     FindFrontiers(frontiers);
 
-    Frontier selectedFrontier;
-    for (const auto &frontier : frontiers) {
-        if (frontier.GetCells().size() > selectedFrontier.GetCells().size()) {
-            selectedFrontier = frontier;
+    unsigned int numfrontiers = frontiers.size();
+    for (int i = 0; i < numfrontiers; ++i) {
+        Frontier selectedFrontier;
+        int idx = -1;
+        for (int frontierIdx = 0; frontierIdx < frontiers.size(); frontierIdx++) {
+            const auto &frontier = frontiers[frontierIdx];
+            if (frontier.GetCells().size() > selectedFrontier.GetCells().size()) {
+                selectedFrontier = frontier;
+            }
+            idx++;
         }
+        frontiers.erase(frontiers.begin() + idx);
+        ordered_frontiers.push_back(selectedFrontier);
     }
-    return selectedFrontier;
+
+    return ordered_frontiers;
 }
 
 void Planner::SetPerception(const std::shared_ptr<Perception> &perception) {
@@ -204,6 +232,7 @@ void Planner::SetPerception(const std::shared_ptr<Perception> &perception) {
 
 void Planner::ConstructPath(const std::vector<std::vector<glm::ivec2>>& cameFrom, const glm::ivec2& end, std::vector<glm::ivec2>& out_path) {
     glm::ivec2 current = end;
+    out_path.clear();
     out_path.push_back(end);
     //What
     while (current != cameFrom[current.x][current.y] && cameFrom[current.x][current.y].x != -1) {

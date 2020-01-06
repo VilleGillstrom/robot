@@ -18,7 +18,7 @@ class Cartographer {
 
 
 public:
-    Cartographer(int cellsize, int xmin, int ymin, int xmax, int ymax);
+    Cartographer(double cellsize, int xmin, int ymin, int xmax, int ymax);
 
     void SetPreception(const std::shared_ptr<Perception> &perception);
 
@@ -69,39 +69,25 @@ public:
 
         //Cells in regionI (possible walls)
         for (const auto &cell : RegionI) {
-            auto p_wall = 0.98; //P(s1 | Occupied)
             float alpha = glm::angle(LaserVector, glm::normalize(CellToWorldLocation(cell) - LaserLocation));
-            // std::cerr << alpha << std::endl;
-
             double distance = DistanceToCell(cell, perception->GetLaserLocation());
-            double p_o = ComputeProbability(distance, alpha, 0.98);
+            double p_o = ComputeProbability(distance, 0, 0.98);
             double p_e = 1 - p_o;
-
             double P_O = occupancyGrid.GetCellValue(cell);
-            double P_E = 1 - P_O;
-
+            double P_E = (1 - P_O) ;
             double p = (p_o * P_O) / ((p_o * P_O) + (p_e * P_E));
-
-           // std::cerr << "regionI :" << p << std::endl;
             occupancyGrid.UpdateCell(cell.x, cell.y, p);
         }
 
         //Cells in regionII (possible free spaces)
         for (const auto &cell : RegionII) {
-            auto p_empty = 1; //P(s1 | Empty)
-
             float alpha = glm::angle(LaserVector, glm::normalize(CellToWorldLocation(cell) - LaserLocation));
-            //std::cerr << alpha << std::endl;
             double distance = DistanceToCell(cell, perception->GetLaserLocation());
-            double p_e = ComputeProbability(distance, alpha, 1);
+            double p_e = ComputeProbability(distance, 0, 1);
             double p_o = 1 - p_e;
-
             double P_O = occupancyGrid.GetCellValue(cell);
             double P_E = 1 - P_O;
-
             double p = (p_e * P_E) / ((p_e * P_E) + (p_o * P_O));
-
-            std::cerr << "regionII:" << p << std::endl;
 
             occupancyGrid.UpdateCell(cell.x, cell.y, 1-p); //1- cause 0 represent sure that empty
         }
@@ -187,11 +173,10 @@ public:
     const std::vector<std::vector<double>> &GetProbablityGrid() const;
 
     int GetXMin() const;
-
     int GetYMin() const;
-
+    int GetYMax() const;
+    int GetXMax() const;
     int MapWidth() const;
-
     int MapHeight() const;
 
     glm::dvec3 CellToWorldLocation(const glm::ivec2 &cell) const;
@@ -212,6 +197,7 @@ public:
 
     /* Get cells next to cell,include diagonal */
     std::vector<glm::ivec2> GetAdjacent(glm::ivec2 cell) const;
+    std::vector<glm::ivec2> GetEmptyAdjacent(glm::ivec2 cell) const;
 
     /* Get cells next to cell, exclude diagonal */
 
@@ -263,7 +249,9 @@ private:
     bool IsOutside(glm::dvec3 Point, glm::dvec3 Normal) const;
 
     int lastTimestamp;
-    int cellSize;
+    double cellSize;
+
+
 };
 
 
