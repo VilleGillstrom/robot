@@ -3,6 +3,7 @@
 #include "RobotCommunicationMRDS.h"
 #include "Perception.h"
 #include "Planner.h"
+#include "Motor.h"
 
 class Navigator {
 public:
@@ -13,22 +14,28 @@ public:
 
     Navigator(Cartographer &cartographer);
 
-    Navigator(Cartographer &cartographer, const std::shared_ptr<RobotCommunicationMRDS> &communicator,
-              const std::shared_ptr<Perception> &percept, const std::shared_ptr<Planner> &planner);
+    Navigator(Cartographer &cartographer,
+              const std::shared_ptr<RobotCommunicationMRDS> &communicator,
+              const std::shared_ptr<Planner> &planner,
+              const std::shared_ptr<Motor> &motor);
 
 
     bool IsNextTargetInPathWithinRange();
+
     void MoveTowardNextTargetInPath();
+
     void SelectNextTargetInPath();
+
     bool HasReachedGoal();
+
     void UpdateRobotDrive();
 
     void Navigate() {
-        std::cout << "current target: (" << nextTargetIdx << "/" <<  pathToTarget.size() << ")" << std::endl;
+        std::cout << "current target: (" << nextTargetIdx << "/" << pathToTarget.size() << ")" << std::endl;
 
-        if(routine  == RobotRoutine::GOAL) {
+        if (routine == RobotRoutine::GOAL) {
             GoalRoutine();
-        }else if(routine  == RobotRoutine::EXPLORE) {
+        } else if (routine == RobotRoutine::EXPLORE) {
             ExploreRoutine();
         }
         UpdateRobotDrive();
@@ -44,7 +51,7 @@ public:
     }
 
     void ExploreRoutine() {
-        if(HasReachedGoal()) {
+        if (HasReachedGoal()) {
             StartGoalRoutine();
             return;
         }
@@ -57,18 +64,18 @@ public:
 
     void StartGoalRoutine() {
         //Initialization
-        targetForwardVector = -perception->GetRobotForwardVector();
+        targetForwardVector = -cartoGrapher.RobotForwardVector();
         communicator->SetSpeedAndAngular(0, 2);
         targetSpeed = 0;
         initializedGoalRoutine = true;
         routine = GOAL;
     }
 
-    void GoalRoutine()  {
-        float d = glm::dot(targetForwardVector, perception->GetRobotForwardVector());
+    void GoalRoutine() {
+        float d = glm::dot(targetForwardVector, cartoGrapher.RobotForwardVector());
         std::cerr << d;
 
-        if((1 - d) < 0.2) {
+        if ((1 - d) < 0.2) {
             //Finished goal routine
             initializedGoalRoutine = false;
             StartExploring();
@@ -77,35 +84,26 @@ public:
     }
 
 
-
     void FindNewTarget() {
         pathToTarget = planner->ComputePath();
         hasTarget = true;
         nextTargetIdx = 0;
     }
 
-    void SetSpeed(int speed);
-
-
-
-
-    void SetCommunicator(std::shared_ptr<RobotCommunicationMRDS> new_communicator);
-
-    void SetPerception(std::shared_ptr<Perception> new_percept);
 
     std::vector<glm::ivec2> GetCurrentPath() const {
         return pathToTarget;
     }
 
 
-
-    glm::ivec2 GetCurrentTargetCell () const {
-        return nextTargetIdx > 0 ? NextTargetCell() : glm::ivec2(-1,-1);
+    glm::ivec2 GetCurrentTargetCell() const {
+        return nextTargetIdx > 0 ? NextTargetCell() : glm::ivec2(-1, -1);
     }
+
 private:
     std::shared_ptr<RobotCommunicationMRDS> communicator;
-    std::shared_ptr<Perception> perception;
     std::shared_ptr<Planner> planner;
+    std::shared_ptr<Motor> motor;
     Cartographer &cartoGrapher;
 
 
@@ -118,9 +116,11 @@ private:
 
 
     bool initializedGoalRoutine;
+
     bool HasTarget();
 
     glm::ivec2 NextTargetCell() const;
+
     glm::dvec3 NextTargetLocation() const;
 
     float ComputeAngularSpeed(const glm::dvec3 &robotForward, const glm::dvec3 &targetForward) const;
@@ -132,6 +132,5 @@ private:
 
     RobotRoutine routine;
 
-    void AvoidObstacles();
 };
 

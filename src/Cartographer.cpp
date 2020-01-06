@@ -46,8 +46,8 @@ glm::dvec3 Cartographer::CellToWorldLocation(const glm::ivec2& cell) const {
     return CellToWorldLocation(cell.x, cell.y);
 }
 glm::dvec3 Cartographer::CellToWorldLocation(int row, int col) const {
-    double x = (col * GetCellWidth()) + (GetCellWidth() / 2) + GetXMin();
-    double y = (row * GetCellHeight()) + (GetCellHeight() / 2) + GetYMin();
+    double x = (col * GetCellWidth()) + (GetCellWidth() / 2.0) + GetXMin();
+    double y = (row * GetCellHeight()) + (GetCellHeight() / 2.0) + GetYMin();
     return {x, y, 0};
 }
 
@@ -77,18 +77,18 @@ bool Cartographer::IsBoxInside(glm::dvec3 LineA, glm::dvec3 LineB,
     glm::vec3 NormalA = glm::cross( glm::normalize(LineA),glm::dvec3(0, 0, 1));
     glm::vec3 NormalB = glm::cross( glm::dvec3(0, 0, 1), glm::normalize(LineB));
 
-    //glm::dvec3 NA = GetVertexN(NormalA, CellLocalLocation);
-   // glm::dvec3 NB = GetVertexN(NormalB, CellLocalLocation);
+    glm::dvec3 NA = GetVertexN(NormalA, CellLocalLocation);
+    glm::dvec3 NB = GetVertexN(NormalB, CellLocalLocation);
     //glm::dvec3 NRobot = GetVertexN(-RobotForward, CellLocalLocation);
 
-//    if (IsOutside(NA, NormalA)) {
-//        return false;
-//    }
-//
-//    if(IsOutside(NB, NormalB)) {
-//        return false;
-//    }
-//
+    if (IsOutside(NA, NormalA)) {
+        return false;
+    }
+
+    if(IsOutside(NB, NormalB)) {
+        return false;
+    }
+
 
 
     if (IsOutside(CellLocalLocation, NormalA)) {

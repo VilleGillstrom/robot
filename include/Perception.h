@@ -8,86 +8,34 @@
 class Perception {
 
 public:
-    Perception(const std::shared_ptr<RobotCommunicationMRDS> &Communicator) : communicator(Communicator) {
-        if (Communicator) {
-            Communicator->ReadProperties();
-            laserProperties = Communicator->GetProperties();
-        }
-    }
+    Perception(const std::shared_ptr<RobotCommunicationMRDS> &Communicator);
 
-    void ReadSensors() {
-        communicator->ReadRobot();
-        echoes = communicator->GetEchoes();
-        localization = communicator->GetLocalization();
-    }
+    void ReadSensors();
+    glm::dvec3 GetLaserLocation() const;
+    glm::dvec3 GetPosition() const;
+    glm::dquat GetOrientation() const;
+    const std::vector<double> &GetEchoDistances() const;
 
-    glm::dvec3 GetLaserLocation() const {
-        return GetPosition() + glm::rotateZ(laserProperties.LaserOffset, GetHeading());
+    double GetStartAngle() const;
+    double GetEndAngle() const;
 
-    }
+    double GetAngleIncrement() const;
+    double GetHeading() const;
+    double GetLaserMaxRange() const;
 
-    glm::dvec3 GetPosition() const {
-        return glm::dvec3(localization.position);
+    glm::dvec3 GetRobotForwardVector() const;
 
-    }
-
-    glm::dquat GetOrientation() const { return localization.orientation; }
-
-    const std::vector<double> &GetEchoDistances() const { return echoes.distance; }
-
-    double GetStartAngle() const {
-        return laserProperties.StartAngle + StartLaserIndex * GetAngleIncrement();;
-    }
-
-    double GetEndAngle() const { return laserProperties.StartAngle + EndLaserIndex *GetAngleIncrement(); }
-
-    double GetAngleIncrement() const { return laserProperties.AngleIncrement; }
-    double GetHeading() const { return glm::eulerAngles(GetOrientation()).z; }
-    double GetLaserMaxRange() const { return 40.0; }
-
-    glm::dvec3 GetRobotForwardVector() const {
-        return glm::normalize(AngleToVector(GetHeading()));
-    }
-
-    static glm::dvec3 AngleToVector(double heading) {
-        return glm::normalize(glm::rotateZ(glm::dvec3(1.0, 0.0, 0.0), heading));
-    }
+    static glm::dvec3 AngleToVector(double heading);
 
     /* Get the world vector of a laser echo at index */
-    glm::dvec3 GetLaserWorldVector(int LaserIndex) const {
-        return AngleToVector(GetLaserHeading(LaserIndex));
-    }
-
-    double GetLaserHeading(int LaserIndex) const {
-        return GetHeading() + laserProperties.StartAngle + LaserIndex * laserProperties.AngleIncrement;
-    }
-
-    double GetLaserSpan() const {
-        return (GetEndLaserIndex()-GetStartLaserIndex() )*laserProperties.AngleIncrement;
-    }
-
-    glm::dvec3 GetLaserLeftEnd() const {
-        const glm::dvec3 &LaserHeading = glm::rotateZ(GetRobotForwardVector(), GetStartAngle() );
-        return GetLaserLocation() + (LaserHeading * 40.0) ;
-    }
-
-    glm::dvec3 GetLaserRightEnd() const {
-        const glm::dvec3 LaserHeading = glm::rotateZ(GetRobotForwardVector(), GetStartAngle() );
-        return GetLaserLocation() + (LaserHeading * 40.0) ;
-
-    }
-
-    int GetStartLaserIndex() const {
-        return StartLaserIndex;
-    }
-
-    int GetEndLaserIndex() const {
-        return EndLaserIndex;
-    }
-
-    int LastEchoTimestamp() const {
-        return echoes.timestamp;
-    }
+    glm::dvec3 GetLaserWorldVector(int LaserIndex) const;
+    double GetLaserHeading(int LaserIndex) const;
+    double GetLaserSpan() const;
+    glm::dvec3 GetLaserLeftEnd() const;
+    glm::dvec3 GetLaserRightEnd() const;
+    int GetStartLaserIndex() const;
+    int GetEndLaserIndex() const;
+    int LastEchoTimestamp() const;
 private:
     int StartLaserIndex = 135-135;
     int EndLaserIndex = 135+135;
@@ -96,8 +44,8 @@ private:
     /* Last Echoes*/
     RobotCommunicationMRDS::laser_echos echoes;
     /* Last localization */
-    RobotCommunicationMRDS::robot_localization localization;
+    RobotCommunicationMRDS::robot_localization localization{};
     /* laser properties */
-    RobotCommunicationMRDS::laser_properties laserProperties;
+    RobotCommunicationMRDS::laser_properties laserProperties{};
 
 };

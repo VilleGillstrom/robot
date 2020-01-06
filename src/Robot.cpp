@@ -1,18 +1,16 @@
 
 #include "include/Robot.h"
 
-Robot::Robot(const std::shared_ptr<RobotCommunicationMRDS> &robotCommunicator)  :
-        cartoGrapher(2, -100, -100, 100, 100)
-         {
+Robot::Robot(const std::shared_ptr<RobotCommunicationMRDS> &robotCommunicator) :
+        cartoGrapher(2, -100, -100, 100, 100) {
     this->robotCommunicator = robotCommunicator;
     perception = std::make_shared<Perception>(robotCommunicator);
     planner = std::make_shared<Planner>(cartoGrapher, perception);
-
+    motor = std::make_shared<Motor>(robotCommunicator);
     cartoGrapher.SetPreception(perception);
 
-    navigator = std::make_shared<Navigator>(cartoGrapher, robotCommunicator, perception, planner);
+    navigator = std::make_shared<Navigator>(cartoGrapher, robotCommunicator, planner, motor);
 }
-
 
 
 void Robot::SetCommunicator(const std::shared_ptr<RobotCommunicationMRDS> &NewRobotCommunicator) {
@@ -20,15 +18,12 @@ void Robot::SetCommunicator(const std::shared_ptr<RobotCommunicationMRDS> &NewRo
 }
 
 
-double Robot::QuatToHeadingAngle(const glm::quat &Orientation) const {
-    return glm::eulerAngles(Orientation).z;
-}
 
 glm::dvec3 Robot::GetPosition() const {
     return perception->GetLaserLocation();
 }
 
-Cartographer &Robot::GetCartographer()  {
+Cartographer &Robot::GetCartographer() {
     return cartoGrapher;
 }
 
@@ -36,10 +31,10 @@ std::shared_ptr<Perception> Robot::GetPerception() const {
     return perception;
 }
 
-Planner &Robot::GetPlanner()  {
+Planner &Robot::GetPlanner() {
     return *planner;
 }
 
-Navigator &Robot::GetNavigator()  {
+Navigator &Robot::GetNavigator() {
     return *navigator;
 }
