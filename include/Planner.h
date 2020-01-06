@@ -2,8 +2,10 @@
 
 #include <glm/glm.hpp>
 #include <deque>
+#include <utility>
 #include "Perception.h"
 #include "Cartographer.h"
+#include <Memory>
 #include "Frontier.h"
 
 class Planner {
@@ -22,7 +24,7 @@ public:
 
 
 
-    Planner(Cartographer &cartographer) : mCartographer(cartographer) {
+    Planner(Cartographer &cartographer, std::shared_ptr<Perception> perception) : mCartographer(cartographer), mPerception(std::move(perception)){
 
     }
     std::vector<glm::ivec2> ComputePath();

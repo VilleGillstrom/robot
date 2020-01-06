@@ -126,17 +126,15 @@ void MapVisualizer::PaintFrontier(QPixmap &pixmap) {
 void MapVisualizer::PaintPlannedPath(QPixmap &pixmap) {
     QPainter painter(&pixmap);
 
-    Planner& planner = robot->GetPlanner();
-
-    glm::ivec2 target = planner.SelectFrontier().GetCentroid();
-    std::vector<glm::ivec2> cells = planner.ComputePath();
-
+    Navigator& navigator = robot->GetNavigator();
+    auto path = navigator.GetCurrentPath();
+    auto nextTargetCell = navigator.GetCurrentTargetCell();
 
 
     painter.setPen(QPen(QColor(0,255,0,255), 1, Qt::PenStyle::SolidLine));
-    for(auto c : cells) {
+    for(auto c : path) {
         painter.drawPoint(c.y, c.x);
     }
-    painter.setPen(QPen(QColor(0,0,255,255), 1, Qt::PenStyle::SolidLine));
-    painter.drawPoint(target.y, target.x);
+    painter.setPen(QPen(QColor(0,128,128,255), 1, Qt::PenStyle::SolidLine));
+    painter.drawPoint(nextTargetCell.y, nextTargetCell.x);
 }

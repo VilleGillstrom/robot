@@ -129,10 +129,20 @@ void RobotCommunicationMRDS::ReadRobot() {
     differentialDriveJson = future_differential.get();
 }
 
-void RobotCommunicationMRDS::SetSpeed(int speed) {
-    differentialDriveJson["Command"]["TargetLinearSpeed"] = speed;
-    cpr::Response r = cpr::Post(cpr::Url{GetDifferentialDriveUrl()}, cpr::Body{differentialDriveJson.dump()});
+void RobotCommunicationMRDS::SetSpeed(float speed) {
+    SetSpeedAndAngular(speed, differentialDriveJson["Command"]["TargetAngularSpeed"]);
 
+}
+
+void RobotCommunicationMRDS::SetSpeedAndAngular(float speed, float angular) {
+    json j;
+    j["TargetLinearSpeed"] = speed;
+    j["TargetAngularSpeed"] = angular;
+    const std::string jsonStr = j.dump();
+    cpr::Response r = cpr::Post(cpr::Url{GetDifferentialDriveUrl()}, cpr::Header{{"Content-Type", "text/plain"}}, cpr::Body{jsonStr});
+    if (!(r.status_code == cpr::status::HTTP_OK || r.status_code == cpr::status::HTTP_NO_CONTENT)) {
+        throw std::runtime_error("SetSpeedAndAngular post failed");
+    }
 }
 
 

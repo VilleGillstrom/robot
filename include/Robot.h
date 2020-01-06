@@ -6,6 +6,7 @@
 #include "Cartographer.h"
 #include "Perception.h"
 #include "Planner.h"
+#include "Navigator.h"
 
 class Robot {
 public:
@@ -24,19 +25,23 @@ public:
     void Update() {
         perception->ReadSensors();
         cartoGrapher.Update();
+        navigator->Navigate();
     }
 
 
     Cartographer &GetCartographer();
     Planner &GetPlanner();
+    Navigator &GetNavigator();
     std::shared_ptr<Perception> GetPerception() const;
 
 private:
 
-    std::shared_ptr<RobotCommunicationMRDS> RobotCommunicator;
+    std::shared_ptr<RobotCommunicationMRDS> robotCommunicator;
     std::shared_ptr<Perception> perception;
+    std::shared_ptr<Planner> planner;
+    std::shared_ptr<Navigator> navigator;
+
     Cartographer cartoGrapher;
-    Planner planner;
 
 
 };

@@ -42,11 +42,8 @@ public:
     double GetEndAngle() const { return laserProperties.StartAngle + EndLaserIndex *GetAngleIncrement(); }
 
     double GetAngleIncrement() const { return laserProperties.AngleIncrement; }
-
     double GetHeading() const { return glm::eulerAngles(GetOrientation()).z; }
-
     double GetLaserMaxRange() const { return 40.0; }
-
 
     glm::dvec3 GetRobotForwardVector() const {
         return glm::normalize(AngleToVector(GetHeading()));
@@ -56,6 +53,7 @@ public:
         return glm::normalize(glm::rotateZ(glm::dvec3(1.0, 0.0, 0.0), heading));
     }
 
+    /* Get the world vector of a laser echo at index */
     glm::dvec3 GetLaserWorldVector(int LaserIndex) const {
         return AngleToVector(GetLaserHeading(LaserIndex));
     }

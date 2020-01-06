@@ -68,14 +68,15 @@ public:
         //Cells in regionI (possible walls)
         for (const auto &cell : RegionI) {
             double p = ComputeProbability(DistanceToCell(cell, perception->GetLaserLocation()));
-            double newProbablity = p;//* occupancyGrid.GetCellValue(cell) ;
+            std::cout << p << std::endl;
+            double newProbablity = p * occupancyGrid.GetCellValue(cell) ;
             occupancyGrid.UpdateCell(cell.x, cell.y, newProbablity);
         }
 
         //Cells in regionII (possible free spaces)
         for (const auto &cell : RegionII) {
             double p = ComputeProbability(DistanceToCell(cell, perception->GetLaserLocation()));
-            double newProbablity = (1 - p); //* occupancyGrid.GetCellValue(cell) ;
+            double newProbablity = (1 - p) * occupancyGrid.GetCellValue(cell) ;
             occupancyGrid.UpdateCell(cell.x, cell.y, newProbablity);
         }
     }
@@ -175,11 +176,10 @@ public:
     std::vector<glm::ivec2> GetNeighbors(glm::ivec2 cell) const;
     double GetProbabilityEmpty(glm::ivec2 cell) const;
     bool IsUnknown(glm::ivec2 cell) const;
+    glm::dvec3 RobotLocation() const {
+        return perception->GetLaserLocation();
+    }
 
-  /*  // A point is the (x,y) if cellsize would be 1, cell is transformed with respect to cellsize
-    glm::ivec2 PointToCell(glm::ivec2 point) const {
-        return (point.x/cellSize, point.y/cellSize);
-    };*/
 private:
     double MaxDistance = 40.0;
     double Beta = 0.00872665;         // half main lobe angle(in radians)
@@ -209,7 +209,6 @@ private:
 
     double DistanceToCell(glm::ivec2 cell, glm::dvec3 position) const;
     inline double HalfCellSize() const { return cellSize / 2.0; }
-
     bool IsOutside(glm::dvec3 Point, glm::dvec3 Normal) const;
 
     int lastTimestamp;

@@ -19,9 +19,6 @@ std::vector<glm::ivec2> Planner::ComputePathToCell(glm::ivec2 cell) {
     //heurisitcs is the distance between two cells
     auto h = [goal](glm::ivec2 n){return glm::distance(glm::vec3(n.x,n.y,0), glm::vec3(goal.x, goal.y, 0));};
 
-    auto comp = [](const glm::ivec2& c1, const glm::ivec2& c2){
-        return c1.x < c2.x || (c1.x == c2.x && c1.y < c2.y);
-    };
     int mapHeight = mCartographer.MapHeight();
     int mapWidth = mCartographer.MapWidth();
 
@@ -29,8 +26,6 @@ std::vector<glm::ivec2> Planner::ComputePathToCell(glm::ivec2 cell) {
     std::vector<std::vector<glm::ivec2>> cameFrom(mapHeight, std::vector<glm::ivec2>(mapWidth, {-1,-1}));
     std::vector<std::vector<float>> gScore(mapHeight, std::vector<float>(mapWidth, std::numeric_limits<float>::max()));
     std::vector<std::vector<float>> fScore(mapHeight, std::vector<float>(mapWidth, std::numeric_limits<float>::max()));
-
-
 
 
     openSet.push_back(start);
@@ -215,5 +210,6 @@ void Planner::ConstructPath(const std::vector<std::vector<glm::ivec2>>& cameFrom
         current = cameFrom[current.x][current.y];
         out_path.push_back(current);
     }
+    std::reverse(out_path.begin(),out_path.end());
 }
 

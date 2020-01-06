@@ -39,8 +39,7 @@ public:
     /** Read the laser sensors (through host) */
     void ReadRobot();
 
-    /** Set speed*/
-    void SetSpeed(int speed);
+
     /** Read the last fetched echoes by ReadSensors() */
     laser_echos GetEchoes() const { return laserEchoes; };
     /** Read the last fetched properties by ReadSensors() */
@@ -48,6 +47,11 @@ public:
     /** Read the last fetched localization by ReadSensors() */
     robot_localization GetLocalization() const { return laserLocalization; };
 
+
+    /** Set speed */
+    void SetSpeed(float speed);
+    /** Set speed and angular targets*/
+    void SetSpeedAndAngular(float speed, float angular);
 
 
 private:
