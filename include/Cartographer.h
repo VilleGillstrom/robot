@@ -69,25 +69,26 @@ public:
 
         //Cells in regionI (possible walls)
         for (const auto &cell : RegionI) {
-            float alpha = glm::angle(LaserVector, glm::normalize(CellToWorldLocation(cell) - LaserLocation));
+            double alpha = glm::angle(LaserVector, glm::normalize(CellToWorldLocation(cell) - LaserLocation));
             double distance = DistanceToCell(cell, perception->GetLaserLocation());
             double p_o = ComputeProbability(distance, 0, 0.98);
             double p_e = 1 - p_o;
             double P_O = occupancyGrid.GetCellValue(cell);
             double P_E = (1 - P_O) ;
-            double p = (p_o * P_O) / ((p_o * P_O) + (p_e * P_E));
+            double p = (p_o * P_O) / ((p_o * P_O) + (p_e * P_E)); //p(Occupied | s)
             occupancyGrid.UpdateCell(cell.x, cell.y, p);
         }
 
         //Cells in regionII (possible free spaces)
         for (const auto &cell : RegionII) {
-            float alpha = glm::angle(LaserVector, glm::normalize(CellToWorldLocation(cell) - LaserLocation));
+            double alpha = glm::angle(LaserVector, glm::normalize(CellToWorldLocation(cell) - LaserLocation)) ;
+            std::cout << "alpha: " << alpha << std::endl;
             double distance = DistanceToCell(cell, perception->GetLaserLocation());
             double p_e = ComputeProbability(distance, 0, 1);
             double p_o = 1 - p_e;
             double P_O = occupancyGrid.GetCellValue(cell);
             double P_E = 1 - P_O;
-            double p = (p_e * P_E) / ((p_e * P_E) + (p_o * P_O));
+            double p = (p_e * P_E) / ((p_e * P_E) + (p_o * P_O)); //p(Empty | s)
 
             occupancyGrid.UpdateCell(cell.x, cell.y, 1-p); //1- cause 0 represent sure that empty
         }
@@ -96,8 +97,7 @@ public:
 
     void AddKnownCell(const glm::ivec2 &cell);
 
-    void GetRegions(const glm::dvec3 LaserLocation, const glm::dvec3 WorldHitLocation, const glm::dvec3 &LaserVector,
-                    const std::vector<glm::ivec2> &CellsInRange,
+    void GetRegions(const glm::dvec3 LaserLocation, const glm::dvec3 WorldHitLocation, const glm::dvec3 &LaserVector, const std::vector<glm::ivec2> &CellsInRange,
                     std::vector<glm::ivec2> &OutRegionI, std::vector<glm::ivec2> &OutRegionII) {
 
         OutRegionI.clear();
@@ -117,17 +117,20 @@ public:
             }
 
             bool isWithin = IsCellWithinBoundry(cell, LaserVector);
-
-            //Is cell within angle?
-            if (isWithin) {
-                double CellDistanceFromHit = glm::length(cellLocalLocation - (WorldHitLocation - LaserLocation));
-                if (CellDistanceFromHit < 2.0) {
-                    OutRegionI.push_back(cell);
-                } else {
-                    OutRegionII.push_back(cell);
-                }
-                AddKnownCell(cell);
+            if (!isWithin) {
+               continue; //Cell is outside  beta
             }
+
+            double foo = glm::distance(RobotDistanceToCell, RobotDistanceToHit);
+
+            double CellDistanceFromRobot = glm::length(cellLocalLocation - (WorldHitLocation - LaserLocation));
+            double CellDistanceFromHit = glm::length(cellLocalLocation - (WorldHitLocation - LaserLocation));
+            if (foo < Region1Range) {
+                OutRegionI.push_back(cell);
+            } else {
+                OutRegionII.push_back(cell);
+            }
+            AddKnownCell(cell);
         }
     }
 
@@ -136,7 +139,25 @@ public:
     /** Is the a square given by CellLocalLocation in front of RobotForward and between LineA and Line B*/
     bool IsBoxInside(glm::dvec3 LineA, glm::dvec3 LineB, glm::dvec3 CellLocalLocation) const;
 
-
+//    std::vector< bresenham(int x1, int y1, int x2, int y2)
+//    {
+//        int m_new = 2 * (y2 - y1);
+//        int slope_error_new = m_new - (x2 - x1);
+//        for (int x = x1, y = y1; x <= x2; x++)
+//        {
+//
+//            // Add slope to increment angle formed
+//            slope_error_new += m_new;
+//
+//            // Slope error reached limit, time to
+//            // increment y and update slope error.
+//            if (slope_error_new >= 0)
+//            {
+//                y++;
+//                slope_error_new  -= 2 * (x2 - x1);
+//            }
+//        }
+//    }
     // The the ponit in a cell that is closest along a normal
     glm::dvec3 GetVertexN(const glm::dvec3 &normal, glm::dvec3 cll) const;
 
@@ -150,13 +171,7 @@ public:
         double a = alpha;           //
 
         double Rratio = (R - r) / R;
-        // a  = std::min(Beta, alpha);
         double AngleRatio = (Beta - a) / Beta;
-        // AngleRatio = 1;
-
-        //std::cerr << "Foo:" << (Rratio + AngleRatio) /2.0 << std::endl;
-        //std::cerr << "Foo:" << alpha << std::endl;
-
         return ((Rratio + AngleRatio) / 2.0) * pMax;
     }
 
@@ -180,15 +195,10 @@ public:
     int MapHeight() const;
 
     glm::dvec3 CellToWorldLocation(const glm::ivec2 &cell) const;
-
     glm::dvec3 CellToWorldLocation(int row, int col) const;
-
     glm::ivec2 WorldLocationToCell(double x, double y) const;
-
     glm::ivec2 WorldLocationToCell(const glm::dvec3 &WorldLocation) const;
-
     void GetCellsInRange(double range, std::vector<glm::ivec2> &outCells);
-
     double CellSize() const { return cellSize; };
 
     glm::dvec3 RobotForwardVector() const {
@@ -214,6 +224,7 @@ public:
 private:
     double MaxDistance = 40.0;
     double Beta = 0.00872665;         // half main lobe angle(in radians)
+    double Region1Range = 1;
 
     SonarModel sonarModel;
 
@@ -243,9 +254,7 @@ private:
 
 
     double DistanceToCell(glm::ivec2 cell, glm::dvec3 position) const;
-
     inline double HalfCellSize() const { return cellSize / 2.0; }
-
     bool IsOutside(glm::dvec3 Point, glm::dvec3 Normal) const;
 
     int lastTimestamp;

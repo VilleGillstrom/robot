@@ -96,14 +96,13 @@ bool Cartographer::IsBoxInside(glm::dvec3 LineA, glm::dvec3 LineB,
     glm::dvec3 NB = GetVertexN(NormalB, CellLocalLocation);
     //glm::dvec3 NRobot = GetVertexN(-RobotForward, CellLocalLocation);
 
-    if (IsOutside(NA, NormalA)) {
-        return false;
-    }
-
-    if(IsOutside(NB, NormalB)) {
-        return false;
-    }
-
+//    if (IsOutside(NA, NormalA)) {
+//        return false;
+//    }
+//
+//    if(IsOutside(NB, NormalB)) {
+//        return false;
+//    }
 
 
     if (IsOutside(CellLocalLocation, NormalA)) {
@@ -202,7 +201,7 @@ std::vector<glm::ivec2> Cartographer::GetEmptyAdjacent(glm::ivec2 cell) const {
     std::vector<glm::ivec2> adjacents = GetAdjacent(cell);
     std::vector<glm::ivec2> empty_adjacents;
     for (glm::ivec2 c : adjacents) {
-        if(occupancyGrid.GetCellValue(c) < 0.6) {
+        if(occupancyGrid.GetCellValue(c) < 0.3) {
             empty_adjacents.push_back(c);
         }
     }

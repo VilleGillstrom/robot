@@ -23,7 +23,7 @@ public:
     void Update() {
         perception->ReadSensors();
         cartoGrapher.Update();
-        navigator->Navigate();
+        //navigator->Navigate();
         reactivecontrol->React();
     }
 
