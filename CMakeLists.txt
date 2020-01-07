@@ -31,8 +31,11 @@ find_package(Qt5 COMPONENTS Widgets REQUIRED)
 ### CPR  ###
 set(ENV{CMAKE_USE_OPENSSL} OFF)
 set(ENV{BUILD_CPR_TESTS} OFF)
-set(ENV{USE_SYSTEM_CURL} OFF) #OFF for windows
-
+if (WIN32)
+    set(ENV{USE_SYSTEM_CURL} OFF) #for windows
+else()
+    set(ENV{USE_SYSTEM_CURL} ON) # for linux
+endif()
 #uncomment next 2 for windws
 add_subdirectory(external/cpr)
 include_directories(${CPR_INCLUDE_DIRS})
@@ -46,7 +49,7 @@ file(GLOB robot_HEAD "include/*.h")
 file(GLOB robot_SRC "src/*.cpp")
 
 
-add_executable(${EXECNAME_MAIN} main.cpp ${robot_HEAD} ${robot_SRC} external/json/json.hpp src/Application.cpp include/Application.h)
+add_executable(${EXECNAME_MAIN} main.cpp ${robot_HEAD} ${robot_SRC} external/json/json.hpp )
 
 include_directories(${CURL_INCLUDE_DIRS})
 

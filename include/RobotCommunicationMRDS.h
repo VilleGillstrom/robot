@@ -59,7 +59,7 @@ public:
     /** Set speed and angular targets*/
     void SetSpeedAndAngular(float speed, float angular);
 
-    void SetURL(const std::string& url);
+    bool SetURL(const std::string& url);
 
 private:
     std::string host;

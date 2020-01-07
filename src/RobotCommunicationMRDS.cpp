@@ -147,7 +147,7 @@ void RobotCommunicationMRDS::SetSpeedAndAngular(float speed, float angular) {
     }
 }
 
-void RobotCommunicationMRDS::SetURL(const std::string &url) {
+bool RobotCommunicationMRDS::SetURL(const std::string &url) {
     std::string cpy = url;
 
 
@@ -159,11 +159,15 @@ void RobotCommunicationMRDS::SetURL(const std::string &url) {
         strings.push_back(s);
     }
 
+    if(strings.size() !=3) {
+        return false;
+    }
+
     host = "http:";
     host.append(strings[1]);
     port = strings[2];
     std::cout << host << std::endl << port << std::endl;
-
+    return true;
 }
 
 

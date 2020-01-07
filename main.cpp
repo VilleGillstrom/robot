@@ -39,7 +39,10 @@ int main(int argc, char** argv) {
     //return 0;
 
     auto RobotCommunicator = std::make_shared<RobotCommunicationMRDS>();
-    RobotCommunicator->SetURL(url);
+    if(!RobotCommunicator->SetURL(url)){
+        std::cerr << "BAd url: " << url << ", needs to be on format: http://xyz:12345";
+        exit(EXIT_FAILURE);
+    }
 
     auto robot = std::make_shared<Robot>(RobotCommunicator, xmin, ymin, xmax,ymax );
     auto mapVisualizer = std::make_shared<MapVisualizer>(showGUI == "1");

@@ -12,6 +12,9 @@
 #include <QtWidgets/QDialog>
 #include<algorithm>
 
+/**
+ * Builds a map during the exploration
+ */
 class Cartographer {
 
 
