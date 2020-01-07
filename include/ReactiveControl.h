@@ -29,7 +29,9 @@ public:
             begin = std::chrono::steady_clock::now();
             navigator->StartExploring(); //Restart exploring, recompute new path
             std::cerr << "REACT TIME" << std::endl;
-
+            navigator->SetSpeedLimit(0.15);
+        } else {
+            navigator->SetSpeedLimit(2);
         }
 
 

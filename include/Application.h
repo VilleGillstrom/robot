@@ -11,20 +11,12 @@ class Application {
 
 public:
     Application() = default;
-    void SetRobot(const std::shared_ptr<Robot>& robot) {
-        this->robot = robot;
-    }
+    void SetRobot(const std::shared_ptr<Robot>& robot);
 
-    void SetMapVisualizer(const std::shared_ptr<MapVisualizer>& mapvisualizer) {
-        this->mapvisualizer = mapvisualizer;
-        if(robot) {
-            mapvisualizer->SetRobot(robot);
-        }
-        mapvisualizer->Update();
-    }
+    void SetMapVisualizer(const std::shared_ptr<MapVisualizer>& mapvisualizer);
 
     void Tick() {
-        robot->Update();
+        robot->Tick();
         if(mapvisualizer) {
             mapvisualizer->Update();
         }

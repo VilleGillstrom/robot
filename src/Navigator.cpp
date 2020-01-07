@@ -11,7 +11,6 @@ Navigator::Navigator(Cartographer &cartographer, const std::shared_ptr<RobotComm
                      const std::shared_ptr<Planner> &planner,
                      const std::shared_ptr<Motor> &motor)
         : cartoGrapher(cartographer),
-          communicator(communicator),
           planner(planner),
           motor(motor),
           nextTargetIdx(-1),
@@ -55,7 +54,8 @@ void Navigator::MoveTowardNextTargetInPath() {
     } else {
         targetForwardVector = glm::normalize(nextLocation - CurrentLocation);
         //Rotate on spot if large angle toward target forward
-        targetSpeed = glm::dot(cartoGrapher.RobotForwardVector(), targetForwardVector) > 0.8 ? 0.9 : 0;
+        bool IsFacingTowardsTarget = glm::dot(cartoGrapher.RobotForwardVector(), targetForwardVector) > 0.8;
+        targetSpeed = IsFacingTowardsTarget ? 0.9 : 0;
     }
 
 
@@ -94,7 +94,10 @@ void Navigator::UpdateRobotDrive() {
     glm::dvec3 robotForward = cartoGrapher.RobotForwardVector();
     float angularspeed = ComputeAngularSpeed(robotForward, targetForwardVector);
     //std::cout << "speed: " << targetSpeed << "angularspeed: " << angularspeed << std::endl;
-    communicator->SetSpeedAndAngular(targetSpeed, angularspeed);
+
+
+    double limitedSpeed = std::min(targetSpeed, speedLimit);
+    motor->SetSpeedAndAngular(limitedSpeed, angularspeed);
 }
 
 

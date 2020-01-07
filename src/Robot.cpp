@@ -6,14 +6,13 @@ Robot::Robot(const std::shared_ptr<RobotCommunicationMRDS> &robotCommunicator) :
 }
 
 Robot::Robot(const std::shared_ptr<RobotCommunicationMRDS> &robotCommunicator,  int xmin, int ymin, int xmax, int ymax) :
-        cartoGrapher(2, xmin, ymin, xmax,ymax) {
+        cartoGrapher(1.5, xmin, ymin, xmax,ymax) {
     this->robotCommunicator = robotCommunicator;
     perception = std::make_shared<Perception>(robotCommunicator);
     planner = std::make_shared<Planner>(cartoGrapher, perception);
     motor = std::make_shared<Motor>(robotCommunicator);
     navigator = std::make_shared<Navigator>(cartoGrapher, robotCommunicator, planner, motor);
     reactivecontrol = std::make_shared<ReactiveControl>(navigator, perception);
-
     cartoGrapher.SetPreception(perception);
 
 }
@@ -23,7 +22,8 @@ Robot::Robot(const std::shared_ptr<RobotCommunicationMRDS> &robotCommunicator,  
 
 
 glm::dvec3 Robot::GetPosition() const {
-    return perception->GetLaserLocation();
+    glm::dvec3 LaserWorldLocation = perception->GetLaserLocation();
+    return LaserWorldLocation;
 }
 
 Cartographer &Robot::GetCartographer() {

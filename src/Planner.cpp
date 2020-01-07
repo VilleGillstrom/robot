@@ -2,36 +2,61 @@
 #include <algorithm>
 
 
-
 std::vector<glm::ivec2> Planner::ComputePath() {
     std::vector<Frontier> frontiers = OrderedFrontiers();
     std::vector<glm::ivec2> outpath;
 
     for (const auto &frontier : frontiers) {
         glm::ivec2 centroid = frontier.GetCentroid();
-        if(ComputePathToCell(centroid, outpath)) {
+        // If centroid same as  last and or we 
+        if (centroid == lastCentroid) {
+            //Possbly stuck, in center, try to find a path to cell in frontier
+            std::vector<glm::ivec2> cellsInCentroid = frontier.GetCells();
+            glm::ivec2 cellInFrontier = cellsInCentroid[cellsInCentroid.size() / 2];
+            glm::ivec2 cellRobot = mCartographer.RobotLocation();
+            glm::ivec2 cellMid((int) ((float) (cellInFrontier.x + cellRobot.x) / 2.0),
+                               (int) ((float) (cellInFrontier.y + cellRobot.y) / 2.0));
+
+            if (ComputePathToCell(cellMid, outpath)) {
+                lastCentroid = cellMid;
+                break;
+            } else {
+                //Check the next frontier
+                continue;
+            }
+        }
+
+        // If can find a path to centroid
+        if (ComputePathToCell(centroid, outpath)) {
+            lastCentroid = centroid;
             break;
-        };
+        }
     }
 
     return outpath;
 }
 
 //A Star from wikipedias psuedocode https://en.wikipedia.org/wiki/A*_search_algorithm
-bool Planner::ComputePathToCell(glm::ivec2 cell, std::vector<glm::ivec2>& path) {
+bool Planner::ComputePathToCell(glm::ivec2 cell, std::vector<glm::ivec2> &path) {
 
     auto map = mCartographer.GetProbablityGrid();
     glm::ivec2 start = GetRobotPoint();
     glm::ivec2 goal = cell;
 
     //heurisitcs is the distance between two cells
-    auto h = [goal](glm::ivec2 n){return glm::distance(glm::vec3(n.x,n.y,0), glm::vec3(goal.x, goal.y, 0));};
+    auto h = [goal](glm::ivec2 n) { return glm::distance(glm::vec3(n.x, n.y, 0), glm::vec3(goal.x, goal.y, 0)); };
+    Cartographer &cg = this->mCartographer;
+    auto d = [&cg](glm::ivec2 current, glm::ivec2 neighbor) {
+        const float distanceToCell = glm::distance(cg.CellToWorldLocation({current.x, current.y}), cg.CellToWorldLocation({neighbor.x, neighbor.y}));
+        const float occupiedWeight = (8 - cg.GetEmptyAdjacent(neighbor).size()) * 100; //Hate if neighbor has occuupied adjacents
+        return distanceToCell + occupiedWeight;
+    };
 
     int mapHeight = mCartographer.MapHeight();
     int mapWidth = mCartographer.MapWidth();
 
     std::vector<glm::ivec2> openSet;
-    std::vector<std::vector<glm::ivec2>> cameFrom(mapHeight, std::vector<glm::ivec2>(mapWidth, {-1,-1}));
+    std::vector<std::vector<glm::ivec2>> cameFrom(mapHeight, std::vector<glm::ivec2>(mapWidth, {-1, -1}));
     std::vector<std::vector<float>> gScore(mapHeight, std::vector<float>(mapWidth, std::numeric_limits<float>::max()));
     std::vector<std::vector<float>> fScore(mapHeight, std::vector<float>(mapWidth, std::numeric_limits<float>::max()));
 
@@ -41,7 +66,7 @@ bool Planner::ComputePathToCell(glm::ivec2 cell, std::vector<glm::ivec2>& path) 
     fScore[start.x][start.y] = h(start);
 
 
-    while(!openSet.empty()) {
+    while (!openSet.empty()) {
         float min_value = std::numeric_limits<float>::max();
         glm::ivec2 current;
         for (const glm::ivec2 &cell : openSet) {
@@ -55,21 +80,20 @@ bool Planner::ComputePathToCell(glm::ivec2 cell, std::vector<glm::ivec2>& path) 
         }
 
 
-
-        if(current == goal) {
+        if (current == goal) {
             ConstructPath(cameFrom, current, path);
             return true;
         }
 
-        openSet.erase(std::remove(openSet.begin(), openSet.end(), current ), openSet.end());
+        openSet.erase(std::remove(openSet.begin(), openSet.end(), current), openSet.end());
 
         std::vector<glm::ivec2> neighbors = GetPossibleNodesAStar(current);
-        for(auto neighbor : neighbors) {
+        for (auto neighbor : neighbors) {
             // d(current,neighbor) is the weight of the edge from current to neighbor
             // tentative_gScore is the distance from start to the neighbor through current
-            float tentative_gScore = gScore[current.x][current.y] + glm::distance(mCartographer.CellToWorldLocation({current.x,current.y}), mCartographer.CellToWorldLocation({neighbor.x,neighbor.y}));
+            float tentative_gScore = gScore[current.x][current.y] + d(current, neighbor);
             float neighbor_score = gScore[neighbor.x][neighbor.y];
-            if(tentative_gScore < neighbor_score) {
+            if (tentative_gScore < neighbor_score) {
                 // This path to neighbor is better than any previous one. Record it!
                 cameFrom[neighbor.x][neighbor.y] = current;;
                 gScore[neighbor.x][neighbor.y] = tentative_gScore;
@@ -80,15 +104,15 @@ bool Planner::ComputePathToCell(glm::ivec2 cell, std::vector<glm::ivec2>& path) 
             }
         }
     }
-    std::cerr << "Unable to find path to cell" << std::endl;
+    std::cout << "Unable to find path to cell: " << cell.x << ", " << cell.y << ")" << std::endl;
     return false;
 }
 
 Planner::mark_type Planner::GetMark(const glm::ivec2 &point) const {
     //glm::ivec2 cell = mCartographer.PointToCell(point);
-    if(point.x < 0 || point.x >= marks.size())
+    if (point.x < 0 || point.x >= marks.size())
         return mark_type::NONE;
-    if(point.y < 0 || point.y >= marks[0].size())
+    if (point.y < 0 || point.y >= marks[0].size())
         return mark_type::NONE;
 
     return marks[point.x][point.y];
@@ -173,18 +197,10 @@ void Planner::FindFrontiers(std::vector<Frontier> &frontiers) {
     }
 }
 
-std::vector<glm::ivec2>Planner::GetPossibleNodesAStar(const Planner::point &q) const {
+std::vector<glm::ivec2> Planner::GetPossibleNodesAStar(const Planner::point &q) const {
     std::vector<glm::ivec2> out;
-
-    const std::vector<glm::ivec2> &EmptyAdjs = mCartographer.GetEmptyAdjacent(q);
-
-    for (const glm::ivec2 &emptyAdj : EmptyAdjs) {
-        const std::vector<glm::ivec2> &AdjEmptyAdjs = mCartographer.GetEmptyAdjacent(emptyAdj) ;
-        if(AdjEmptyAdjs.size() == 8) {
-            out.push_back(emptyAdj);
-        }
-    }
-    return out;
+    const std::vector<glm::ivec2> &neighbors = mCartographer.GetNeighborsLessThan(q, 0.51);
+    return neighbors;
 }
 
 Planner::point Planner::GetRobotPoint() const {
@@ -196,7 +212,7 @@ Planner::point Planner::GetRobotPoint() const {
 bool Planner::HasOpenSpaceNeighbor(const Planner::point &v) const {
     std::vector<point> neighbors = mCartographer.GetAdjacent(v);
     for (point n : neighbors) {
-        if (mCartographer.GetProbabilityEmpty(n) > 0.6) {
+        if (mCartographer.GetProbabilityEmpty(n) > 0.50 && !mCartographer.IsUnknown(n)) {
             return true;
         }
     }
@@ -209,6 +225,7 @@ std::vector<Frontier> Planner::OrderedFrontiers() {
     FindFrontiers(frontiers);
 
     unsigned int numfrontiers = frontiers.size();
+    //Order frontiers with most unexplored cells
     for (int i = 0; i < numfrontiers; ++i) {
         Frontier selectedFrontier;
         int idx = -1;
@@ -216,8 +233,9 @@ std::vector<Frontier> Planner::OrderedFrontiers() {
             const auto &frontier = frontiers[frontierIdx];
             if (frontier.GetCells().size() > selectedFrontier.GetCells().size()) {
                 selectedFrontier = frontier;
+                idx = frontierIdx;
             }
-            idx++;
+
         }
         frontiers.erase(frontiers.begin() + idx);
         ordered_frontiers.push_back(selectedFrontier);
@@ -230,7 +248,8 @@ void Planner::SetPerception(const std::shared_ptr<Perception> &perception) {
     mPerception = perception;
 }
 
-void Planner::ConstructPath(const std::vector<std::vector<glm::ivec2>>& cameFrom, const glm::ivec2& end, std::vector<glm::ivec2>& out_path) {
+void Planner::ConstructPath(const std::vector<std::vector<glm::ivec2>> &cameFrom, const glm::ivec2 &end,
+                            std::vector<glm::ivec2> &out_path) {
     glm::ivec2 current = end;
     out_path.clear();
     out_path.push_back(end);
@@ -239,6 +258,12 @@ void Planner::ConstructPath(const std::vector<std::vector<glm::ivec2>>& cameFrom
         current = cameFrom[current.x][current.y];
         out_path.push_back(current);
     }
-    std::reverse(out_path.begin(),out_path.end());
+    std::reverse(out_path.begin(), out_path.end());
+}
+
+Planner::Planner(Cartographer &cartographer, std::shared_ptr<Perception> perception) : mCartographer(cartographer),
+                                                                                       mPerception(
+                                                                                               std::move(perception)) {
+
 }
 

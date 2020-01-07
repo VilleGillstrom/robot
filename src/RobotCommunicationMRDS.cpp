@@ -147,6 +147,25 @@ void RobotCommunicationMRDS::SetSpeedAndAngular(float speed, float angular) {
     }
 }
 
+void RobotCommunicationMRDS::SetURL(const std::string &url) {
+    std::string cpy = url;
+
+
+    //WHY IS SIMPLE STUFF LIKE SPLITTING STRING A HEADACHE !? /endrant
+    std::vector<std::string> strings;
+    std::stringstream f(url);
+    std::string s;
+    while (getline(f, s, ':')) {
+        strings.push_back(s);
+    }
+
+    host = "http:";
+    host.append(strings[1]);
+    port = strings[2];
+    std::cout << host << std::endl << port << std::endl;
+
+}
+
 
 
 

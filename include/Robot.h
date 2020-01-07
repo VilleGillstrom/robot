@@ -20,10 +20,10 @@ public:
     glm::dvec3 GetPosition() const;
 
 
-    void Update() {
+    void Tick() {
         perception->ReadSensors();
         cartoGrapher.Update();
-        //navigator->Navigate();
+        navigator->Navigate();
         reactivecontrol->React();
     }
 

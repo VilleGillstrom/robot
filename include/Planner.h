@@ -5,7 +5,7 @@
 #include <utility>
 #include "Perception.h"
 #include "Cartographer.h"
-#include <Memory>
+#include <memory>
 #include "Frontier.h"
 
 class Planner {
@@ -24,11 +24,8 @@ public:
 
 
 
-    Planner(Cartographer &cartographer, std::shared_ptr<Perception> perception) : mCartographer(cartographer), mPerception(std::move(perception)){
-
-    }
+    Planner(Cartographer &cartographer, std::shared_ptr<Perception> perception);
     std::vector<glm::ivec2> ComputePath();
-
     std::vector<Frontier> OrderedFrontiers();
 
 
@@ -44,20 +41,16 @@ private:
     /** Contains the marks for different points(reset each time) */
     std::vector<std::vector<mark_type>> marks;
 
-
     void SetMark(const glm::ivec2 &point, mark_type type);
-
     mark_type GetMark(const glm::ivec2 &point) const;
-
     bool IsFrontierPoint(const point &p) const;
 
-
-
+    /* Construct a path after A* */
     void ConstructPath(const std::vector<std::vector<glm::ivec2>>& cameFrom, const glm::ivec2& end, std::vector<glm::ivec2>& outPath);
+    std::vector<glm::ivec2> GetPossibleNodesAStar(const point &q) const; /* Get possible neighbors to move to from point q*/
+    bool ComputePathToCell(glm::ivec2 cell, std::vector<glm::ivec2>& path); /* Construct a path using A* to cell */
 
-    std::vector<glm::ivec2> GetPossibleNodesAStar(const point &q) const;
-
-    bool ComputePathToCell(glm::ivec2 cell, std::vector<glm::ivec2>& path);
+    glm::ivec2 lastCentroid;
 };
 
 

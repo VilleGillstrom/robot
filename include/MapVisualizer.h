@@ -11,56 +11,11 @@ class MapVisualizer {
 
 
 public:
-    MapVisualizer() {
-        boxLayout = new QVBoxLayout();
-        label = new QLabel();
-        label->setScaledContents(true);
-        mw.setLayout(boxLayout);
-        boxLayout->addWidget(label);
-        mw.setMinimumSize(800, 800);
-        mw.show();
-    }
+    MapVisualizer(bool showGUI);
 
-    void SetRobot(const std::shared_ptr<Robot> &robot) {
-        this->robot = robot;
-        const Cartographer &cg = robot->GetCartographer();
-
-    }
-
+    void SetRobot(const std::shared_ptr<Robot> &robot);
     void DrawCellsInRange(QPixmap &pixmap, double i);
-
-
-    void Update() {
-        if (!robot) {
-            return;
-        }
-
-        const Cartographer &cg = robot->GetCartographer();
-        const auto &grid = cg.GetProbablityGrid();
-
-        int width = GetWidth();
-        int height = GetHeight();
-
-        QVector<QRgb> colormap(width * height);
-        FillOccupancyGrid(grid, width, height, colormap);
-
-        QImage image = QImage((uchar *) colormap.data(), width, height, QImage::Format_ARGB32);
-        QPixmap pixmap = QPixmap::fromImage(image);
-
-        PaintLaserView(pixmap);
-        PaintPlannedPath(pixmap);
-       // PaintRobot(pixmap);
-        //  DrawCellsInRange(pixmap, 40);
-
-        //PaintFrontier(pixmap);
-
-        pixmap = pixmap.transformed(QTransform().scale(1, -1));
-        pixmap = pixmap.scaled(800, 800, Qt::IgnoreAspectRatio, Qt::FastTransformation);
-
-        label->setPixmap(pixmap);
-    }
-
-
+    void Update();
     void FillOccupancyGrid(const std::vector<std::vector<double>> &grid, int width, int height,
                            QVector<QRgb> &colormap) const;
 
@@ -74,9 +29,12 @@ public:
 
 private:
     std::shared_ptr<Robot> robot;
-    MainWindow mw;
+    std::shared_ptr<MainWindow> mw;
     QVBoxLayout *boxLayout;
     QLabel *label;
+    QPixmap pixmap; //Pixmap representation of cartogapher
+
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
 
     /** Get the map width, will be equal to columns in the occupancyGrid */

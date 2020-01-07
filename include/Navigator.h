@@ -25,6 +25,9 @@ public:
     void SelectNextTargetInPath();
     bool HasReachedGoal();
     void UpdateRobotDrive();
+    void SetSpeedLimit(double limit) {
+        this->speedLimit = limit;
+    }
 
     void Navigate() {
         //std::cout << "current target: (" << nextTargetIdx << "/" << pathToTarget.size() << ")" << std::endl;
@@ -57,14 +60,20 @@ public:
         if (!HasTarget()) {
             FindNewTarget();
         }
-        SelectNextTargetInPath();
-        MoveTowardNextTargetInPath();
+
+        //Verify that a target was successfly found
+        if (HasTarget()) {
+            SelectNextTargetInPath();
+            MoveTowardNextTargetInPath();
+        }
+
+
     }
 
     void StartGoalRoutine() {
         //Initialization
         targetForwardVector = -cartoGrapher.RobotForwardVector();
-        communicator->SetSpeedAndAngular(0, 2);
+        motor->SetSpeedAndAngular(0, 2);
         targetSpeed = 0;
         routine = GOAL;
     }
@@ -80,8 +89,14 @@ public:
 
     void FindNewTarget() {
         pathToTarget = planner->ComputePath();
-        hasTarget = true;
-        nextTargetIdx = 0;
+        if(pathToTarget.size() > 0) {
+            hasTarget = true;
+            nextTargetIdx = 0;
+        } else {
+            hasTarget = false;
+            nextTargetIdx = -1;
+        }
+
     }
 
 
@@ -95,7 +110,7 @@ public:
     }
 
 private:
-    std::shared_ptr<RobotCommunicationMRDS> communicator;
+    //std::shared_ptr<RobotCommunicationMRDS> communicator;
     std::shared_ptr<Planner> planner;
     std::shared_ptr<Motor> motor;
     Cartographer &cartoGrapher;
@@ -110,19 +125,17 @@ private:
 
 
     bool HasTarget();
-
     glm::ivec2 NextTargetCell() const;
-
     glm::dvec3 NextTargetLocation() const;
-
     float ComputeAngularSpeed(const glm::dvec3 &robotForward, const glm::dvec3 &targetForward) const;
 
     bool IsCellWithinRange(glm::ivec2 cell);
 
     glm::dvec3 targetForwardVector;
-    float targetSpeed;
+    double targetSpeed;
 
     RobotRoutine routine;
 
+    double speedLimit;
 };
 
