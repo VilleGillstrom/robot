@@ -326,10 +326,6 @@ void Cartographer::Update() {
 
     const std::vector<double> &Distances = perception->GetEchoDistances();
 
-    double StartAngle = perception->GetStartAngle();
-    double AngleIncrement = perception->GetAngleIncrement();
-    double Heading = perception->GetHeading();
-
 
     if (perception->LastEchoTimestamp() != lastTimestamp) {
         lastTimestamp = perception->LastEchoTimestamp();
@@ -346,6 +342,14 @@ void Cartographer::Update() {
         const glm::dvec3 LaserVector = Perception::AngleToVector(GlobalLaserHeading);
         HandleEcho(Distances[i], LaserVector, PossibleRegionCells);
     }
+}
+
+glm::dvec3 Cartographer::RobotForwardVector() const {
+    return perception->GetRobotForwardVector();
+}
+
+glm::dvec3 Cartographer::RobotLocation() const {
+    return perception->GetLaserLocation();
 }
 
 

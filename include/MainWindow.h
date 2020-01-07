@@ -6,10 +6,10 @@
 #include <QMessageBox>
 #include <QCloseEvent>
 
-namespace Ui {
-    class MainWindow;
-}
 
+/**
+ * A simple window for showing the gui
+ */
 class MainWindow : public QWidget
 {
     Q_OBJECT
@@ -23,5 +23,4 @@ protected:
         event->accept();
     }
 private:
-    //Ui::MainWindow *ui;
 };

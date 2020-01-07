@@ -5,6 +5,9 @@
 #include <glm/glm.hpp>
 #include <external/glm/gtx/rotate_vector.hpp>
 
+/**
+ * Perception of the world. Should be used to get sensor data.
+ */
 class Perception {
 
 public:

@@ -11,6 +11,10 @@
 #include <external/glm/gtc/quaternion.hpp>
 #include <external/json/json.hpp>
 
+/**
+ * Interface to MRDS
+ */
+
 class RobotCommunicationMRDS {
 public:
     struct laser_echos {

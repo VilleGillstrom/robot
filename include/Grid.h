@@ -4,10 +4,13 @@
 #include <iostream>
 #include <cmath>
 #include <glm/glm.hpp>
-
+/**
+ * A 2D grid, primarily used of occopancy  gui
+ */
 class Grid {
 
 public:
+
     Grid(double cellsize, int xmin, int ymin, int xmax, int ymax);
     Grid(double cellsize, int xmin, int ymin, int xmax, int ymax, float value);
 

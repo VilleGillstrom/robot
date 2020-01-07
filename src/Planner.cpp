@@ -2,8 +2,8 @@
 #include <algorithm>
 
 
-std::vector<glm::ivec2> Planner::ComputePath() {
-    std::vector<Frontier> frontiers = OrderedFrontiers();
+std::vector<glm::ivec2> Planner::SelectPath() {
+    std::vector<Frontier> frontiers = OrderedFindFrontiers();
     std::vector<glm::ivec2> outpath;
 
     for (const auto &frontier : frontiers) {
@@ -127,6 +127,7 @@ bool Planner::IsFrontierPoint(const Planner::point &p) const {
     return isFrontier;
 }
 
+//https://arxiv.org/ftp/arxiv/papers/1806/1806.03581.pdf
 void Planner::FindFrontiers(std::vector<Frontier> &frontiers) {
     marks = std::vector<std::vector<mark_type>>(mCartographer.MapHeight(),
                                                 std::vector<mark_type>(mCartographer.MapWidth(), mark_type::NONE));
@@ -204,7 +205,7 @@ std::vector<glm::ivec2> Planner::GetPossibleNodesAStar(const Planner::point &q) 
 }
 
 Planner::point Planner::GetRobotPoint() const {
-    glm::dvec3 loc = mPerception->GetLaserLocation();
+    glm::dvec3 loc = mCartographer.RobotLocation();
     point robot_point = mCartographer.WorldLocationToCell(loc.x, loc.y);
     return robot_point;
 }
@@ -219,7 +220,7 @@ bool Planner::HasOpenSpaceNeighbor(const Planner::point &v) const {
     return false;
 }
 
-std::vector<Frontier> Planner::OrderedFrontiers() {
+std::vector<Frontier> Planner::OrderedFindFrontiers() {
     std::vector<Frontier> frontiers;
     std::vector<Frontier> ordered_frontiers;
     FindFrontiers(frontiers);
@@ -244,9 +245,7 @@ std::vector<Frontier> Planner::OrderedFrontiers() {
     return ordered_frontiers;
 }
 
-void Planner::SetPerception(const std::shared_ptr<Perception> &perception) {
-    mPerception = perception;
-}
+
 
 void Planner::ConstructPath(const std::vector<std::vector<glm::ivec2>> &cameFrom, const glm::ivec2 &end,
                             std::vector<glm::ivec2> &out_path) {
@@ -261,9 +260,5 @@ void Planner::ConstructPath(const std::vector<std::vector<glm::ivec2>> &cameFrom
     std::reverse(out_path.begin(), out_path.end());
 }
 
-Planner::Planner(Cartographer &cartographer, std::shared_ptr<Perception> perception) : mCartographer(cartographer),
-                                                                                       mPerception(
-                                                                                               std::move(perception)) {
-
-}
+Planner::Planner(Cartographer &cartographer) : mCartographer(cartographer) {}
 

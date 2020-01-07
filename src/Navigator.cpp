@@ -100,5 +100,82 @@ void Navigator::UpdateRobotDrive() {
     motor->SetSpeedAndAngular(limitedSpeed, angularspeed);
 }
 
+void Navigator::Navigate() {
+    //std::cout << "current target: (" << nextTargetIdx << "/" << pathToTarget.size() << ")" << std::endl;
+
+    if (routine == RobotRoutine::GOAL) {
+
+        std::cout << "Goal stuff" << std::endl;
+        GoalRoutine();
+    } else if (routine == RobotRoutine::EXPLORE) {
+        std::cout << "Exploring" << std::endl;
+        ExploreRoutine();
+    }
+    UpdateRobotDrive();
+}
+
+void Navigator::StartExploring() {
+    //Initialization
+    pathToTarget.clear();
+    nextTargetIdx = -1;
+    hasTarget = false;
+
+    routine = EXPLORE;
+}
+
+void Navigator::ExploreRoutine() {
+    if (HasReachedGoal()) {
+        StartGoalRoutine();
+        return;
+    }
+    if (!HasTarget()) {
+        FindNewTarget();
+    }
+
+    //Verify that a target was successfly found
+    if (HasTarget()) {
+        SelectNextTargetInPath();
+        MoveTowardNextTargetInPath();
+    }
+
+
+}
+
+void Navigator::StartGoalRoutine() {
+    //Initialization
+    targetForwardVector = -cartoGrapher.RobotForwardVector();
+    motor->SetSpeedAndAngular(0, 2);
+    targetSpeed = 0;
+    routine = GOAL;
+}
+
+void Navigator::GoalRoutine() {
+    float d = glm::dot(targetForwardVector, cartoGrapher.RobotForwardVector());
+    if ((1 - d) < 0.2) {
+        //Has rotated
+        StartExploring();
+    }
+}
+
+void Navigator::FindNewTarget() {
+    pathToTarget = planner->SelectPath();
+    if(pathToTarget.size() > 0) {
+        hasTarget = true;
+        nextTargetIdx = 0;
+    } else {
+        hasTarget = false;
+        nextTargetIdx = -1;
+    }
+
+}
+
+std::vector<glm::ivec2> Navigator::GetCurrentPath() const {
+    return pathToTarget;
+}
+
+glm::ivec2 Navigator::GetCurrentTargetCell() const {
+    return nextTargetIdx > 0 ? NextTargetCell() : glm::ivec2(-1, -1);
+}
+
 
 

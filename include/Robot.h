@@ -10,6 +10,9 @@
 #include "Motor.h"
 #include "ReactiveControl.h"
 
+/**
+ * Represents a robot and all its pieces
+ */
 class Robot {
 public:
 
@@ -19,13 +22,8 @@ public:
     /** Read properties for the robot through RobotCommunicator */
     glm::dvec3 GetPosition() const;
 
-
-    void Tick() {
-        perception->ReadSensors();
-        cartoGrapher.Update();
-        navigator->Navigate();
-        reactivecontrol->React();
-    }
+    //Tick the robot, calling the different pieces
+    void Tick();
 
 
     Cartographer &GetCartographer();

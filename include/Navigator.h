@@ -29,85 +29,18 @@ public:
         this->speedLimit = limit;
     }
 
-    void Navigate() {
-        //std::cout << "current target: (" << nextTargetIdx << "/" << pathToTarget.size() << ")" << std::endl;
+    void Navigate();
 
-        if (routine == RobotRoutine::GOAL) {
+    void StartExploring();
+    void ExploreRoutine();
+    void StartGoalRoutine();
+    void GoalRoutine();
 
-            std::cout << "Goal stuff" << std::endl;
-            GoalRoutine();
-        } else if (routine == RobotRoutine::EXPLORE) {
-            std::cout << "Exploring" << std::endl;
-            ExploreRoutine();
-        }
-        UpdateRobotDrive();
-    }
-
-    void StartExploring() {
-        //Initialization
-        pathToTarget.clear();
-        nextTargetIdx = -1;
-        hasTarget = false;
-
-        routine = EXPLORE;
-    }
-
-    void ExploreRoutine() {
-        if (HasReachedGoal()) {
-            StartGoalRoutine();
-            return;
-        }
-        if (!HasTarget()) {
-            FindNewTarget();
-        }
-
-        //Verify that a target was successfly found
-        if (HasTarget()) {
-            SelectNextTargetInPath();
-            MoveTowardNextTargetInPath();
-        }
+    void FindNewTarget();
 
 
-    }
-
-    void StartGoalRoutine() {
-        //Initialization
-        targetForwardVector = -cartoGrapher.RobotForwardVector();
-        motor->SetSpeedAndAngular(0, 2);
-        targetSpeed = 0;
-        routine = GOAL;
-    }
-
-    void GoalRoutine() {
-        float d = glm::dot(targetForwardVector, cartoGrapher.RobotForwardVector());
-        if ((1 - d) < 0.2) {
-            //Has rotated
-            StartExploring();
-        }
-    }
-
-
-    void FindNewTarget() {
-        pathToTarget = planner->ComputePath();
-        if(pathToTarget.size() > 0) {
-            hasTarget = true;
-            nextTargetIdx = 0;
-        } else {
-            hasTarget = false;
-            nextTargetIdx = -1;
-        }
-
-    }
-
-
-    std::vector<glm::ivec2> GetCurrentPath() const {
-        return pathToTarget;
-    }
-
-
-    glm::ivec2 GetCurrentTargetCell() const {
-        return nextTargetIdx > 0 ? NextTargetCell() : glm::ivec2(-1, -1);
-    }
+    std::vector<glm::ivec2> GetCurrentPath() const;
+    glm::ivec2 GetCurrentTargetCell() const;
 
 private:
     //std::shared_ptr<RobotCommunicationMRDS> communicator;

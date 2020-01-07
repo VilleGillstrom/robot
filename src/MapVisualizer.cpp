@@ -203,3 +203,7 @@ void MapVisualizer::SetRobot(const std::shared_ptr<Robot> &robot) {
     const Cartographer &cg = robot->GetCartographer();
 
 }
+
+int MapVisualizer::RowColTo1D(int r, int c, int width) const {
+    return r * width + c;
+}

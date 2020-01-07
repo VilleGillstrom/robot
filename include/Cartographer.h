@@ -2,7 +2,6 @@
 
 #include <external/glm/vec3.hpp>
 #include "Grid.h"
-#include "RobotTypes.h"
 #include "Perception.h"
 
 #include <glm/glm.hpp>
@@ -18,29 +17,22 @@ class Cartographer {
 
 public:
     Cartographer(double cellsize, int xmin, int ymin, int xmax, int ymax);
+    void Update(); // call each loop
 
     void SetPreception(const std::shared_ptr<Perception> &perception);
 
-    void Update();
-    void HandleEcho(double distanceToHit, const glm::dvec3 &LaserVector, const std::vector<glm::ivec2> &CellsInRange);
+    /* add cell to be considered "known" ie we have seen this cell */
     void AddKnownCell(const glm::ivec2 &cell);
 
-    void GetRegions(const glm::dvec3 LaserLocation, const glm::dvec3 WorldHitLocation, const glm::dvec3 &LaserVector, const std::vector<glm::ivec2> &CellsInRange,
-                    std::vector<glm::ivec2> &OutRegionI, std::vector<glm::ivec2> &OutRegionII);
 
-    bool IsCellWithinBoundry(glm::ivec2 cell, glm::dvec3 LaserVector) const;
-
-    /** Is the a square given by CellLocalLocation in front of RobotForward and between LineA and Line B*/
-    bool IsBoxInside(glm::dvec3 LineA, glm::dvec3 LineB, glm::dvec3 CellLocalLocation) const;
-
-    double ComputeProbability(double distance, double alpha, double pMax) const;
-
-
-    /** Read the the global position of a laser hit */
-    glm::dvec3  ComputeWorldHitLocation(double Distance, const glm::dvec3 &LaserPosition, double GlobalLaserHeading) const;
+    /* Read the the global position of a laser hit */
+    glm::dvec3 ComputeWorldHitLocation(double Distance, const glm::dvec3 &LaserPosition, double GlobalLaserHeading) const;
+    /* Read the the local position of a laser hit */
     glm::dvec3 ComputeLocalHitLocation(double Distance, double GlobalLaserHeading) const;
-    glm::dvec3 WorldLaserDirection(double GlobalLaserHeading) const;
-    const std::vector<std::vector<double>> &GetProbablityGrid() const;
+
+    glm::dvec3 WorldLaserDirection(double GlobalLaserHeading) const;    // Convert angle heading to a vector
+    const std::vector<std::vector<double>> &GetProbablityGrid() const; // Regference to occupancy grid
+
     int GetXMin() const;
     int GetYMin() const;
     int GetYMax() const;
@@ -55,10 +47,7 @@ public:
     void GetCellsInRobotRange(double range, std::vector<glm::ivec2> &outCells); /* What cells are in range of the robot */
 
     double CellSize() const { return cellSize; };
-
-    glm::dvec3 RobotForwardVector() const {
-        return perception->GetRobotForwardVector();
-    }
+    glm::dvec3 RobotForwardVector() const;
 
     /* Get cells next to cell,include diagonal */
     std::vector<glm::ivec2> GetAdjacent(glm::ivec2 cell) const;
@@ -66,63 +55,55 @@ public:
 
     /* Get cells next to cell, exclude diagonal */
     std::vector<glm::ivec2> GetNeighbors(glm::ivec2 cell) const;
-    /* Get neighbors with less than p in occupancy grid */
     std::vector<glm::ivec2> GetNeighborsLessThan(glm::ivec2 cell, float p) const;
 
     double GetProbabilityEmpty(glm::ivec2 cell) const;
 
     bool IsUnknown(glm::ivec2 cell) const;
 
-    glm::dvec3 RobotLocation() const {
-        return perception->GetLaserLocation();
-    }
+    glm::dvec3 RobotLocation() const;
 
-    glm::ivec2 RobotCell() const {
-        return WorldLocationToCell(RobotLocation());
-    }
+
 
 private:
-    double MaxDistance = 40.0;
-    double Beta = 0.00872665;         // half main lobe angle(in radians)
-    double Region1Range = 2;
+    double Beta = 0.00872665;   // half main lobe angle(in radians)
+    double Region1Range = 2;     // the width of regionI
 
-    Grid occupancyGrid;
-    Grid exploredGrid;
-    std::shared_ptr<Perception> perception;
+    Grid occupancyGrid;         // Contains probabilities, empty = 0, occupied = 1
+    Grid exploredGrid;          // Contains explored cells, unexplored = 0, explored = 1
+    std::shared_ptr<Perception> perception; // What the robot perceive
+
+    int lastTimestamp;          // Last handle time from perception
+    double cellSize;            // size of a cell
 
     double GetCellHeight() const;
-
     double GetCellWidth() const;
-
-    inline glm::dvec3 TopRightCellCorner(const glm::dvec3 Location) const {
-        return {Location.x + HalfCellSize(), Location.y + HalfCellSize(), Location.z};
-    }
-
-    inline glm::dvec3 TopLeftCellCorner(const glm::dvec3 Location) const {
-        return {Location.x - HalfCellSize(), Location.y + HalfCellSize(), Location.z};
-    }
-
-    inline glm::dvec3 BotRightCellCorner(const glm::dvec3 Location) const {
-        return {Location.x + HalfCellSize(), Location.y - HalfCellSize(), Location.z};
-    }
-
-    inline glm::dvec3 BotLeftCellCorner(const glm::dvec3 Location) const {
-        return {Location.x - HalfCellSize(), Location.y - HalfCellSize(), Location.z};
-    }
-
 
     double DistanceToCell(glm::ivec2 cell, glm::dvec3 position) const;
     inline double HalfCellSize() const { return cellSize / 2.0; }
     bool IsOutside(glm::dvec3 Point, glm::dvec3 Normal) const;
 
-    int lastTimestamp;
-    double cellSize;
 
+    /* Handle a single laser reading */
+    void HandleEcho(double distanceToHit, const glm::dvec3 &LaserVector, const std::vector<glm::ivec2> &CellsInRange);
 
+    /* Get all cells within range disance*/
     void GetCellsInRange(const glm::dvec3 &worldlocation, double range, std::vector<glm::ivec2> &outCells) const;
-
     void GetCellsInRange(const glm::ivec2 &cell, double range, std::vector<glm::ivec2> &outCells) const;
 
+
+    /* Get regionI and regionII */
+    void GetRegions(const glm::dvec3 LaserLocation, const glm::dvec3 WorldHitLocation, const glm::dvec3 &LaserVector, const std::vector<glm::ivec2> &CellsInRange,
+                    std::vector<glm::ivec2> &OutRegionI, std::vector<glm::ivec2> &OutRegionII);
+
+    /* Is the cell within the angle of a laser */
+    bool IsCellWithinBoundry(glm::ivec2 cell, glm::dvec3 LaserVector) const;
+
+    /* Is the a square given by CellLocalLocation in front of RobotForward and between LineA and Line B*/
+    bool IsBoxInside(glm::dvec3 LineA, glm::dvec3 LineB, glm::dvec3 CellLocalLocation) const;
+
+    /* Compute probability p(s|H) */
+    double ComputeProbability(double distance, double alpha, double pMax) const;
 };
 
 

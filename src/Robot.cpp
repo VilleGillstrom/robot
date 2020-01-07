@@ -5,20 +5,17 @@ Robot::Robot(const std::shared_ptr<RobotCommunicationMRDS> &robotCommunicator) :
         Robot(robotCommunicator, -60, -60, 60, 60) {
 }
 
-Robot::Robot(const std::shared_ptr<RobotCommunicationMRDS> &robotCommunicator,  int xmin, int ymin, int xmax, int ymax) :
-        cartoGrapher(1.5, xmin, ymin, xmax,ymax) {
+Robot::Robot(const std::shared_ptr<RobotCommunicationMRDS> &robotCommunicator, int xmin, int ymin, int xmax, int ymax) :
+        cartoGrapher(1.5, xmin, ymin, xmax, ymax) {
     this->robotCommunicator = robotCommunicator;
     perception = std::make_shared<Perception>(robotCommunicator);
-    planner = std::make_shared<Planner>(cartoGrapher, perception);
+    planner = std::make_shared<Planner>(cartoGrapher);
     motor = std::make_shared<Motor>(robotCommunicator);
     navigator = std::make_shared<Navigator>(cartoGrapher, robotCommunicator, planner, motor);
     reactivecontrol = std::make_shared<ReactiveControl>(navigator, perception);
     cartoGrapher.SetPreception(perception);
 
 }
-
-
-
 
 
 glm::dvec3 Robot::GetPosition() const {
@@ -40,4 +37,11 @@ Planner &Robot::GetPlanner() {
 
 Navigator &Robot::GetNavigator() {
     return *navigator;
+}
+
+void Robot::Tick() {
+    perception->ReadSensors();
+    cartoGrapher.Update();
+    navigator->Navigate();
+    reactivecontrol->React();
 }
