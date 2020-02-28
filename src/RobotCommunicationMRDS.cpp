@@ -92,8 +92,6 @@ json RobotCommunicationMRDS::FetchDifferentialDriveJson() {
 }
 
 
-
-
 std::string RobotCommunicationMRDS::GetPropertiesUrl() const {
     return MakeFullUrl("/lokarria/laser/properties");
 }
@@ -168,6 +166,11 @@ bool RobotCommunicationMRDS::SetURL(const std::string &url) {
     port = strings[2];
     std::cout << host << std::endl << port << std::endl;
     return true;
+}
+
+bool RobotCommunicationMRDS::TestUrlConnection() {
+    cpr::Response r = cpr::Get(cpr::Url{MakeFullUrl("")}, cpr::Timeout{1000});
+    return r.status_code == cpr::status::HTTP_OK;
 }
 
 

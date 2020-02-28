@@ -53,6 +53,8 @@ public:
     /** Read the last fetched localization by ReadSensors() */
     robot_localization GetLocalization() const { return laserLocalization; };
 
+    /** Returns true if connection is able */
+    bool TestUrlConnection();
 
     /** Set speed */
     void SetSpeed(float speed);

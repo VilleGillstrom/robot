@@ -1,7 +1,3 @@
-//
-// Created by twentyletters on 2020-01-06.
-//
-
 #include "include/ReactiveControl.h"
 
 void ReactiveControl::React() {
@@ -16,7 +12,7 @@ void ReactiveControl::React() {
 
     std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
     auto timeSinceLastReact = std::chrono::duration_cast<std::chrono::milliseconds>(now - begin).count();
-    if(minDistance < 1  && timeSinceLastReact > 5000) {
+    if(minDistance < 5  && timeSinceLastReact > 5000) {
         begin = std::chrono::steady_clock::now();
         navigator->StartExploring(); //Restart exploring, recompute new path
         std::cerr << "REACT TIME" << std::endl;

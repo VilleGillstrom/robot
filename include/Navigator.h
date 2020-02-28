@@ -25,9 +25,7 @@ public:
     void SelectNextTargetInPath();
     bool HasReachedGoal();
     void UpdateRobotDrive();
-    void SetSpeedLimit(double limit) {
-        this->speedLimit = limit;
-    }
+    void SetSpeedLimit(double limit);
 
     void Navigate();
 

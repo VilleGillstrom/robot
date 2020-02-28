@@ -95,8 +95,7 @@ void Navigator::UpdateRobotDrive() {
     float angularspeed = ComputeAngularSpeed(robotForward, targetForwardVector);
     //std::cout << "speed: " << targetSpeed << "angularspeed: " << angularspeed << std::endl;
 
-
-    double limitedSpeed = std::min(targetSpeed, speedLimit);
+    float limitedSpeed = std::min(targetSpeed, speedLimit);
     motor->SetSpeedAndAngular(limitedSpeed, angularspeed);
 }
 
@@ -119,7 +118,6 @@ void Navigator::StartExploring() {
     pathToTarget.clear();
     nextTargetIdx = -1;
     hasTarget = false;
-
     routine = EXPLORE;
 }
 
@@ -175,6 +173,10 @@ std::vector<glm::ivec2> Navigator::GetCurrentPath() const {
 
 glm::ivec2 Navigator::GetCurrentTargetCell() const {
     return nextTargetIdx > 0 ? NextTargetCell() : glm::ivec2(-1, -1);
+}
+
+void Navigator::SetSpeedLimit(double limit) {
+    this->speedLimit = limit;
 }
 
 
