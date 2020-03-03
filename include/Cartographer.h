@@ -29,7 +29,7 @@ public:
 
 
     /* Read the the global position of a laser hit */
-    glm::dvec3 ComputeWorldHitLocation(double Distance, const glm::dvec3 &LaserPosition, double GlobalLaserHeading) const;
+    glm::dvec3 ComputeWorldHitLocation(double Distance, double GlobalLaserHeading) const;
     /* Read the the local position of a laser hit */
     glm::dvec3 ComputeLocalHitLocation(double Distance, double GlobalLaserHeading) const;
 
@@ -61,11 +61,10 @@ public:
     std::vector<glm::ivec2> GetNeighborsLessThan(glm::ivec2 cell, float p) const;
 
     double GetProbabilityEmpty(glm::ivec2 cell) const;
-
     bool IsUnknown(glm::ivec2 cell) const;
-
     glm::dvec3 RobotLocation() const;
 
+    Grid &GetDangerGrid();
 
 
 private:
@@ -74,6 +73,8 @@ private:
 
     Grid occupancyGrid;         // Contains probabilities, empty = 0, occupied = 1
     Grid exploredGrid;          // Contains explored cells, unexplored = 0, explored = 1
+    Grid dangerGrid;       // Contains obstacles by reactionComponent, 0 is free, 1 is very dangerous
+
     std::shared_ptr<Perception> perception; // What the robot perceive
 
     int lastTimestamp;          // Last handle time from perception

@@ -12,7 +12,7 @@ Robot::Robot(const std::shared_ptr<RobotCommunicationMRDS> &robotCommunicator, i
     planner = std::make_shared<Planner>(cartoGrapher);
     motor = std::make_shared<Motor>(robotCommunicator);
     navigator = std::make_shared<Navigator>(cartoGrapher, robotCommunicator, planner, motor);
-    reactivecontrol = std::make_shared<ReactiveControl>(navigator, perception, motor);
+    reactivecontrol = std::make_shared<ReactiveControl>(navigator, perception, motor, cartoGrapher);
     cartoGrapher.SetPreception(perception);
 
 }
@@ -22,6 +22,7 @@ void Robot::Tick() {
     cartoGrapher.Update();
     navigator->Navigate();
     reactivecontrol->React();
+    motor->UpdateDrive();
 }
 
 

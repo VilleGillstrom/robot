@@ -49,7 +49,8 @@ bool Planner::ComputePathToCell(glm::ivec2 cell, std::vector<glm::ivec2> &path) 
     auto d = [&cg](glm::ivec2 current, glm::ivec2 neighbor) {
         const float distanceToCell = glm::distance(cg.CellToWorldLocation({current.x, current.y}), cg.CellToWorldLocation({neighbor.x, neighbor.y}));
         const float occupiedWeight = (8 - cg.GetEmptyAdjacent(neighbor).size()) * 100; //Hate if neighbor has occuupied adjacents
-        return distanceToCell + occupiedWeight;
+        const float reactWeight = cg.GetDangerGrid().GetCellValue(neighbor) * 20;
+        return distanceToCell + occupiedWeight + reactWeight;
     };
 
     int mapHeight = mCartographer.MapHeight();

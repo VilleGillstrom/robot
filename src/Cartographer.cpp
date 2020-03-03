@@ -3,7 +3,9 @@
 
 
 Cartographer::Cartographer(double cellsize, int xmin, int ymin, int xmax, int ymax) :
-        occupancyGrid(cellsize, xmin, ymin, xmax, ymax), exploredGrid(cellsize, xmin, ymin, xmax, ymax, 0) {
+        occupancyGrid(cellsize, xmin, ymin, xmax, ymax),
+        exploredGrid(cellsize, xmin, ymin, xmax, ymax, 0),
+        dangerGrid(cellsize, xmin, ymin, xmax, ymax, 0){
     this->cellSize = cellsize;
 }
 
@@ -25,7 +27,7 @@ int Cartographer::GetYMax() const {
 }
 
 const std::vector<std::vector<double>> &Cartographer::GetProbablityGrid() const {
-    return occupancyGrid.GetGrid();
+    return occupancyGrid.GetMatrix();
 }
 
 double Cartographer::GetCellHeight() const {
@@ -118,11 +120,9 @@ glm::dvec3 Cartographer::ComputeLocalHitLocation(double Distance, double GlobalL
     return LocalHitPosition;
 }
 
-glm::dvec3
-Cartographer::ComputeWorldHitLocation(double Distance, const glm::dvec3 &LaserPosition,
-                                      double GlobalLaserHeading) const {
+glm::dvec3 Cartographer::ComputeWorldHitLocation(double Distance, double GlobalLaserHeading) const {
     glm::dvec3 LocalHitLocation = ComputeLocalHitLocation(Distance, GlobalLaserHeading);
-    glm::dvec3 GlobalHitLocation = LaserPosition + LocalHitLocation;
+    glm::dvec3 GlobalHitLocation = perception->GetLaserLocation() + LocalHitLocation;
     return GlobalHitLocation;
 }
 
@@ -246,7 +246,7 @@ void Cartographer::GetRegions(const glm::dvec3 LaserLocation, const glm::dvec3 W
     OutRegionI.clear();
     OutRegionII.clear();
 
-    const std::vector<std::vector<double>> &grid = occupancyGrid.GetGrid();
+    const std::vector<std::vector<double>> &grid = occupancyGrid.GetMatrix();
     for (const glm::ivec2 &cell : CellsInRange) {
         glm::dvec3 cellWorldLocation = CellToWorldLocation(cell);
         glm::dvec3 cellLocalLocation = cellWorldLocation - LaserLocation;
@@ -326,7 +326,6 @@ void Cartographer::Update() {
 
     const std::vector<double> &Distances = perception->GetEchoDistances();
 
-
     if (perception->LastEchoTimestamp() != lastTimestamp) {
         lastTimestamp = perception->LastEchoTimestamp();
     } else {
@@ -350,6 +349,10 @@ glm::dvec3 Cartographer::RobotForwardVector() const {
 
 glm::dvec3 Cartographer::RobotLocation() const {
     return perception->GetLaserLocation();
+}
+
+Grid &Cartographer::GetDangerGrid() {
+    return dangerGrid;
 }
 
 

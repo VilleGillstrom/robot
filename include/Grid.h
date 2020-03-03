@@ -29,7 +29,7 @@ public:
     int Ymin;
     int Ymax;
 
-    const std::vector<std::vector<double>> & GetGrid() const;
+    const std::vector<std::vector<double>> & GetMatrix() const;
     int NumColumns() const;
     int NumRows() const;
     bool IsValidRow(int row) const;

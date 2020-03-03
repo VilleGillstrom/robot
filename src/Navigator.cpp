@@ -15,6 +15,7 @@ Navigator::Navigator(Cartographer &cartographer, const std::shared_ptr<RobotComm
           motor(motor),
           nextTargetIdx(-1),
           hasTarget(false),
+          speedLimit(2),
           routine(RobotRoutine::EXPLORE) {
 }
 
@@ -61,16 +62,6 @@ void Navigator::MoveTowardNextTargetInPath() {
 
 }
 
-float Navigator::ComputeAngularSpeed(const glm::dvec3 &robotForward, const glm::dvec3 &targetForward) const {
-    glm::dvec3 diffForward = glm::normalize(targetForward - robotForward);
-    float forw_targ_dot = glm::dot(robotForward, targetForward);
-    float AbsAngle = glm::acos((float) forw_targ_dot);
-
-    glm::dvec3 RobotRight = glm::cross(robotForward, glm::dvec3(0, 0, 1));
-    float angle = glm::dot(RobotRight, diffForward) > 0 ? -AbsAngle : AbsAngle;
-    float angularspeed = (angle / 3.14) * 0.8;
-    return angularspeed;
-}
 
 void Navigator::SelectNextTargetInPath() {
     for (int i = nextTargetIdx; i < pathToTarget.size(); i++) {
@@ -90,11 +81,10 @@ glm::ivec2 Navigator::NextTargetCell() const {
     return pathToTarget[nextTargetIdx];
 }
 
-void Navigator::UpdateRobotDrive() {
+void Navigator::UpdateMotor() {
     glm::dvec3 robotForward = cartoGrapher.RobotForwardVector();
-    float angularspeed = ComputeAngularSpeed(robotForward, targetForwardVector);
+    float angularspeed = Motor::ComputeAngularSpeed(robotForward, targetForwardVector);
     //std::cout << "speed: " << targetSpeed << "angularspeed: " << angularspeed << std::endl;
-
     float limitedSpeed = std::min(targetSpeed, speedLimit);
     motor->SetSpeedAndAngular(limitedSpeed, angularspeed);
 }
@@ -102,15 +92,21 @@ void Navigator::UpdateRobotDrive() {
 void Navigator::Navigate() {
     //std::cout << "current target: (" << nextTargetIdx << "/" << pathToTarget.size() << ")" << std::endl;
 
-    if (routine == RobotRoutine::GOAL) {
-
-        std::cout << "Goal stuff" << std::endl;
-        GoalRoutine();
-    } else if (routine == RobotRoutine::EXPLORE) {
-        std::cout << "Exploring" << std::endl;
-        ExploreRoutine();
+    switch(routine) {
+        case EXPLORE:
+            std::cout << "Exploring" << std::endl;
+            ExploreRoutine();
+            UpdateMotor();
+            break;
+        case GOAL:
+            std::cout << "Goal stuff" << std::endl;
+            GoalRoutine();
+            UpdateMotor();
+            break;
+        case REACTING:
+            // Handled by ReactiveControl
+            break;
     }
-    UpdateRobotDrive();
 }
 
 void Navigator::StartExploring() {
@@ -136,7 +132,6 @@ void Navigator::ExploreRoutine() {
         MoveTowardNextTargetInPath();
     }
 
-
 }
 
 void Navigator::StartGoalRoutine() {
@@ -154,6 +149,13 @@ void Navigator::GoalRoutine() {
         StartExploring();
     }
 }
+
+
+void Navigator::ReactOverride() {
+    routine = REACTING;
+}
+
+
 
 void Navigator::FindNewTarget() {
     pathToTarget = planner->SelectPath();
@@ -178,6 +180,5 @@ glm::ivec2 Navigator::GetCurrentTargetCell() const {
 void Navigator::SetSpeedLimit(double limit) {
     this->speedLimit = limit;
 }
-
 
 

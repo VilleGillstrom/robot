@@ -9,7 +9,8 @@ class Navigator {
 public:
     enum RobotRoutine {
         EXPLORE,
-        GOAL
+        GOAL,
+        REACTING
     };
 
     Navigator(Cartographer &cartographer);
@@ -24,7 +25,7 @@ public:
     void MoveTowardNextTargetInPath();
     void SelectNextTargetInPath();
     bool HasReachedGoal();
-    void UpdateRobotDrive();
+    void UpdateMotor();
     void SetSpeedLimit(double limit);
 
     void Navigate();
@@ -33,6 +34,7 @@ public:
     void ExploreRoutine();
     void StartGoalRoutine();
     void GoalRoutine();
+    void ReactOverride();
 
     void FindNewTarget();
 
@@ -58,7 +60,6 @@ private:
     bool HasTarget();
     glm::ivec2 NextTargetCell() const;
     glm::dvec3 NextTargetLocation() const;
-    float ComputeAngularSpeed(const glm::dvec3 &robotForward, const glm::dvec3 &targetForward) const;
 
     bool IsCellWithinRange(glm::ivec2 cell);
 

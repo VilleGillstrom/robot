@@ -21,10 +21,6 @@ bool VerifyMapSize(int xmin, int xmax, int ymin, int ymax);
 int main(int argc, char **argv) {
     auto curl = curl_easy_init();
 
-    if(argc != 7) {
-        std::cerr << "Wrong number of arguments: example usage ./application  <url> <x_min> <y_min> <x_max> <y_max> <showGUI>" << std::endl;
-        exit(EXIT_FAILURE);
-    }
 
     //Get host and port
     std::string url = argv[1];

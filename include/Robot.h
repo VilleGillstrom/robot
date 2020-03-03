@@ -39,7 +39,6 @@ private:
     std::shared_ptr<Navigator> navigator;
     std::shared_ptr<Motor> motor;
     std::shared_ptr<ReactiveControl> reactivecontrol;
-
     Cartographer cartoGrapher;
 
 

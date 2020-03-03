@@ -26,7 +26,7 @@ int Grid::NumRows() const {
 
 }
 
-const std::vector<std::vector<double>> &Grid::GetGrid() const {
+const std::vector<std::vector<double>> &Grid::GetMatrix() const {
     return grid;
 }
 

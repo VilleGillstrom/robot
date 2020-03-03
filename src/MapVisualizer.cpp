@@ -75,7 +75,6 @@ void MapVisualizer::FillOccupancyGrid(const std::vector<std::vector<double>> &gr
             double p = (1 - grid[r][c]) * 255;
             int index = RowColTo1D(r, c, width);
             colormap[index] = (qRgba(p, p, p, 255));
-
         }
     }
 }
@@ -144,7 +143,7 @@ void MapVisualizer::Update() {
         return;
     }
 
-    const Cartographer &cg = robot->GetCartographer();
+    Cartographer &cg = robot->GetCartographer();
     const auto &grid = cg.GetProbablityGrid();
 
     int width = GetWidth();
